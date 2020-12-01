@@ -3,15 +3,14 @@
 1.  Create your configuration file from the template
 
         $ cp spid_public.conf.example spid_public.conf
-        $ editor spid_public.conf
 
     then, according to your needs,  customise the values for `commonname`,
     `countryName`, `localityName`, `organizationIdentifier`, `organizationName`,
     `serialNumber` and `uri`.
 
-2.  Generate the sel-signed certificate
+2.  Generate the self-signed certificate
 
-        $ openssl req -new -x509 -config spid_public.conf \
+        $ openssl req -new -x509 -config spid_public.conf -days 730 \
             -keyout privkey.pem -out cert.pem -extensions req_ext
 
 3.  Verify if the certificate honours the specifications
