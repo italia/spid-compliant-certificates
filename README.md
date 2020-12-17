@@ -4,7 +4,7 @@
 
         $ cp spid_public.conf.example spid_public.conf
 
-    then, according to your needs,  customise the values for `commonname`,
+    then, according to your needs,  customise the values for `commonName`,
     `countryName`, `localityName`, `organizationIdentifier`, `organizationName`,
     `serialNumber` and `uri`.
 
