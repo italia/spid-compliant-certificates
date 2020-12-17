@@ -1,4 +1,47 @@
-# Self-signed for public sector
+# SPID Compliant Certificate
+
+The repository contains a solution to create X.509 certificates according to
+[Avviso SPID n.29](https://www.agid.gov.it/sites/default/files/repository_files/spid-avviso-n29-specifiche_sp_pubblici_e_privati.pdf).
+
+**NOTE:** The solution is provided "AS-IS" and does not represent an official
+implementation from Agenzia per l'Italia Digitale.
+
+## Self-signed certificate for public sector (with Docker)
+
+1.  Build the Docker image
+
+        $ docker build --tag psmiraglia/spid-compliant-certificates .
+
+2.  Run the following command to configure the environment according to your
+    needs
+
+        $ cat > my.env <<EOF
+        COMMON_NAME=Comune di Roma
+        LOCALITY_NAME=Roma
+        ORGANIZATION_IDENTIFIER=PA:IT-c_h501
+        ORGANIZATION_NAME=Comune di Roma
+        SERIAL_NUMBER=1234567890
+        SPID_SECTOR=public
+        URI=https://spid.comune.roma.it
+        EOF
+
+3.  Create a directory where new certificate(s) will be stored
+
+        $ mkdir /tmp/mycert
+
+4.  Run the container as in the following
+
+        $ docker run -ti --rm \
+            --env-file my.env \
+            -v "/tmp/mycert:/spid-certificate" \
+            psmiraglia/spid-compliant-certificates
+
+5.  Enjoy with your new self-signed certificate
+
+        $ ls /tmp/mycert
+        cert.pem  privkey.pem
+
+## Self-signed certificate for public sector
 
 1.  Create your configuration file from the template
 
