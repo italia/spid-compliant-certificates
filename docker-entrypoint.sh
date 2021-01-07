@@ -55,10 +55,14 @@ fi
 
 case ${SPID_SECTOR} in
     public)
+        AGID_NOTICE="cert_SP_Pubblici"
         POLICY_IDENTIFIER="spid-publicsector-SP"
+        SPID_NOTICE="Service provider SPID pubblico"
         ;;
     private)
+        AGID_NOTICE="cert_SP_Privati"
         POLICY_IDENTIFIER="spid-privatesector-SP"
+i        SPID_NOTICE="Service provider SPID privato"
         ;;
     *)
     echo "[E] SPID_SECTOR must be one of ['public', 'private']"
@@ -81,6 +85,7 @@ req_extensions=req_ext
 
 [ spid_oids ]
 #organizationIdentifier=2.5.4.97
+agid=1.3.76.16
 spid-privatesector-SP=1.3.76.16.4.3.1
 spid-publicsector-SP=1.3.76.16.4.2.1
 uri=2.5.4.83
@@ -95,10 +100,21 @@ serialNumber=${SERIAL_NUMBER}
 uri=${URI}
 
 [ req_ext ]
-certificatePolicies=@spid_policies
+certificatePolicies=@agid_policies, @spid_policies
+
+[ agid_policies ]
+policyIdentifier=agid
+userNotice=@agid_notice
+
+[ agid_notice ]
+explicitText="${AGID_NOTICE}"
 
 [ spid_policies ]
 policyIdentifier=${POLICY_IDENTIFIER}
+userNotice = @spid_notice
+
+[ spid_notice ]
+explicitText="${SPID_NOTICE}"
 EOF
 
 # generate selfsigned certificate
