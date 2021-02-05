@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-openssl_conf=$(mktemp)
-
 # check input parameters
 
 COMMON_NAME=${COMMON_NAME:=""}
@@ -55,85 +53,13 @@ fi
 
 case ${SPID_SECTOR} in
     public)
-        AGID_NOTICE="cert_SP_Pubblici"
-        POLICY_IDENTIFIER="spid-publicsector-SP"
-        SPID_NOTICE="Service provider SPID pubblico"
+        gencert-public
         ;;
     private)
-        AGID_NOTICE="cert_SP_Privati"
-        POLICY_IDENTIFIER="spid-privatesector-SP"
-        SPID_NOTICE="Service provider SPID privato"
+        echo "[W] To be implemented"
         ;;
     *)
     echo "[E] SPID_SECTOR must be one of ['public', 'private']"
     exit 1
         ;;
 esac
-
-# generate configuration file
-
-cat > ${openssl_conf} <<EOF
-oid_section=spid_oids
-
-[ req ]
-default_bits=3072
-default_md=sha384
-distinguished_name=dn
-encrypt_key=no
-prompt=no
-req_extensions=req_ext
-
-[ spid_oids ]
-#organizationIdentifier=2.5.4.97
-agid=1.3.76.16
-spid-privatesector-SP=1.3.76.16.4.3.1
-spid-publicsector-SP=1.3.76.16.4.2.1
-uri=2.5.4.83
-
-[ dn ]
-commonName=${COMMON_NAME}
-countryName=IT
-localityName=${LOCALITY_NAME}
-organizationIdentifier=${ORGANIZATION_IDENTIFIER}
-organizationName=${ORGANIZATION_NAME}
-serialNumber=${SERIAL_NUMBER}
-uri=${URI}
-
-[ req_ext ]
-certificatePolicies=@agid_policies, @spid_policies
-
-[ agid_policies ]
-policyIdentifier=agid
-userNotice=@agid_notice
-
-[ agid_notice ]
-explicitText="${AGID_NOTICE}"
-
-[ spid_policies ]
-policyIdentifier=${POLICY_IDENTIFIER}
-userNotice = @spid_notice
-
-[ spid_notice ]
-explicitText="${SPID_NOTICE}"
-EOF
-
-# generate selfsigned certificate
-
-openssl req -new -x509 -config ${openssl_conf} \
-    -days ${DAYS:=730} \
-    -keyout privkey.pem -out cert.pem \
-    -extensions req_ext
-
-# dump (text) the certificate
-
-openssl x509 -noout -text -in cert.pem
-
-# dump (ASN.1) the certificate
-
-openssl asn1parse -inform PEM \
-    -oid /usr/local/etc/oids.conf \
-    -i -in cert.pem
-
-# cleanup
-
-rm -fr ${openssl_conf}

@@ -25,8 +25,10 @@ RUN apk add --update --no-cache \
         openssl
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-COPY oids.conf /usr/local/etc/oids.conf
-RUN chmod +x /usr/local/bin/docker-entrypoint
+COPY gencert-public.sh /usr/local/bin/gencert-public
+RUN chmod +x \
+    /usr/local/bin/docker-entrypoint \
+    /usr/local/bin/gencert-public
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
 WORKDIR /spid-certificate
