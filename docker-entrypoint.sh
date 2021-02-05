@@ -62,7 +62,7 @@ case ${SPID_SECTOR} in
     private)
         AGID_NOTICE="cert_SP_Privati"
         POLICY_IDENTIFIER="spid-privatesector-SP"
-i        SPID_NOTICE="Service provider SPID privato"
+        SPID_NOTICE="Service provider SPID privato"
         ;;
     *)
     echo "[E] SPID_SECTOR must be one of ['public', 'private']"
