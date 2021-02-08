@@ -1,7 +1,7 @@
 # SPID Compliant Certificate
 
 The repository contains a solution to create X.509 certificates according to
-[Avviso SPID n.29](https://www.agid.gov.it/sites/default/files/repository_files/spid-avviso-n29-specifiche_sp_pubblici_e_privati.pdf).
+[Avviso SPID n.29 v3](https://www.agid.gov.it/sites/default/files/repository_files/spid-avviso-n29v3-specifiche_sp_pubblici_e_privati_0.pdf).
 
 **NOTE:** The solution is provided "AS-IS" and does not represent an official
 implementation from Agenzia per l'Italia Digitale.
@@ -56,7 +56,6 @@ implementation from Agenzia per l'Italia Digitale.
         export LOCALITY_NAME="Roma"
         export ORGANIZATION_IDENTIFIER="PA:IT-c_h501"
         export ORGANIZATION_NAME="Comune di Roma"
-        export SPID_SECTOR="public"
         EOF
         $ chmod +x myenv.sh && source myenv.sh
 
