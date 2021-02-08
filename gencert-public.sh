@@ -39,7 +39,7 @@ countryName=IT
 localityName=${LOCALITY_NAME}
 organizationIdentifier=${ORGANIZATION_IDENTIFIER}
 organizationName=${ORGANIZATION_NAME}
-uri=${URI}
+uri=${ENTITY_ID}
 
 [ req_ext ]
 basicConstraints=CA:FALSE

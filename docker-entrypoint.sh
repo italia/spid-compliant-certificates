@@ -33,9 +33,9 @@ if [ "X${ORGANIZATION_NAME}" == "X" ]; then
     exit 1
 fi
 
-URI=${URI:=""}
-if [ "X${URI}" == "X" ]; then
-    echo "[E] URI must be set"
+ENTITY_ID=${ENTITY_ID:=""}
+if [ "X${ENTITY_ID}" == "X" ]; then
+    echo "[E] ENTITY_ID must be set"
     exit 1
 fi
 

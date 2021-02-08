@@ -18,11 +18,11 @@ implementation from Agenzia per l'Italia Digitale.
         $ cat > my.env <<EOF
         COMMON_NAME=Comune di Roma
         DAYS=3650
+        ENTITY_ID=https://spid.comune.roma.it
         LOCALITY_NAME=Roma
         ORGANIZATION_IDENTIFIER=PA:IT-c_h501
         ORGANIZATION_NAME=Comune di Roma
         SPID_SECTOR=public
-        URI=https://spid.comune.roma.it
         EOF
 
 3.  Create a directory where new certificate(s) will be stored
@@ -52,11 +52,11 @@ implementation from Agenzia per l'Italia Digitale.
         $ cat > myenv.sh <<EOF
         export COMMON_NAME="Comune di Roma"
         export DAYS="3650"
+        export ENTITY_ID="https://spid.comune.roma.it"
         export LOCALITY_NAME="Roma"
         export ORGANIZATION_IDENTIFIER="PA:IT-c_h501"
         export ORGANIZATION_NAME="Comune di Roma"
         export SPID_SECTOR="public"
-        export URI="https://spid.comune.roma.it"
         EOF
         $ chmod +x myenv.sh && source myenv.sh
 
