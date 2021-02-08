@@ -43,6 +43,8 @@ serialNumber=${SERIAL_NUMBER}
 uri=${URI}
 
 [ req_ext ]
+basicConstraints=CA:FALSE
+keyUsage=critical,digitalSignature,nonRepudiation
 certificatePolicies=@agid_policies,@spid_policies
 
 [ agid_policies ]
