@@ -33,12 +33,6 @@ if [ "X${ORGANIZATION_NAME}" == "X" ]; then
     exit 1
 fi
 
-SERIAL_NUMBER=${SERIAL_NUMBER:=""}
-if [ "X${SERIAL_NUMBER}" == "X" ]; then
-    echo "[E] SERIAL_NUMBER must be set"
-    exit 1
-fi
-
 URI=${URI:=""}
 if [ "X${URI}" == "X" ]; then
     echo "[E] URI must be set"

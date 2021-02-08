@@ -21,7 +21,6 @@ implementation from Agenzia per l'Italia Digitale.
         LOCALITY_NAME=Roma
         ORGANIZATION_IDENTIFIER=PA:IT-c_h501
         ORGANIZATION_NAME=Comune di Roma
-        SERIAL_NUMBER=1234567890
         SPID_SECTOR=public
         URI=https://spid.comune.roma.it
         EOF
@@ -56,7 +55,6 @@ implementation from Agenzia per l'Italia Digitale.
         export LOCALITY_NAME="Roma"
         export ORGANIZATION_IDENTIFIER="PA:IT-c_h501"
         export ORGANIZATION_NAME="Comune di Roma"
-        export SERIAL_NUMBER="1234567890"
         export SPID_SECTOR="public"
         export URI="https://spid.comune.roma.it"
         EOF

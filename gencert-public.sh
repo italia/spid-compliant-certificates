@@ -39,7 +39,6 @@ countryName=IT
 localityName=${LOCALITY_NAME}
 organizationIdentifier=${ORGANIZATION_IDENTIFIER}
 organizationName=${ORGANIZATION_NAME}
-serialNumber=${SERIAL_NUMBER}
 uri=${URI}
 
 [ req_ext ]
