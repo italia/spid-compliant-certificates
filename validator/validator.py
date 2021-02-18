@@ -20,22 +20,28 @@ LOG.setLevel(logging.DEBUG)
 LOG.addHandler(fh)
 
 
-def pem_to_der(cert_file: str) -> bytes:
+def pem_to_der(cert_file: str) -> Tuple[bytes, str]:
     if not os.path.exists(cert_file):
-        raise Exception('cert file is missing')
+        msg = 'File at %s not found' % cert_file
+        return None, msg
 
     lines = []
     with open(cert_file, 'r') as fp:
         lines = fp.readlines()
         fp.close()
 
-    if '-----BEGIN CERTIFICATE-----' not in lines[0]:
-        raise Exception('cert file must be a PEM')
+    if ('-----BEGIN CERTIFICATE-----' not in lines[0]):
+        msg = 'Certificate at %s must be a PEM' % cert_file
+        return None, msg
+
+    if ('-----END CERTIFICATE-----' not in lines[len(lines)-1]):
+        msg = 'Certificate at %s must be a PEM' % cert_file
+        return None, msg
 
     b64_data = ''.join([line[:-1] for line in lines[1:-1]])
     der = base64.b64decode(b64_data)
 
-    return der
+    return der, None
 
 
 def key_usage_is_ok(e: Extension) -> bool:
@@ -46,21 +52,21 @@ def key_usage_is_ok(e: Extension) -> bool:
         return is_ok
 
     # check the requested key usage
-    for usage in ['digital_signature',
-                  'content_commitment']:
+    for usage in ['content_commitment',
+                  'digital_signature']:
         if not getattr(e.value, usage):
             # requested usage is not present
             return is_ok
 
     # check the not requested key usage
     try:
-        for usage in ['key_encipherment',
+        for usage in ['crl_sign',
                       'data_encipherment',
+                      'decipher_only',
+                      'encipher_only',
                       'key_agreement',
                       'key_cert_sign',
-                      'crl_sign',
-                      'encipher_only',
-                      'decipher_only']:
+                      'key_encipherment']:
             if getattr(e.value, usage):
                 # not requested usage is present
                 return is_ok
@@ -132,8 +138,11 @@ def certificate_policies_is_ok(e: Extension) -> Tuple[bool, str]:
 
 class TestPublicSectorSPIDCertificate(unittest.TestCase):
     def setUp(self):
-        der = pem_to_der(os.getenv('CERT_FILE', 'crt.pem'))
-        self.cert = x509.load_der_x509_certificate(der)
+        der, msg = pem_to_der(os.getenv('CERT_FILE', 'crt.pem'))
+        if der:
+            self.cert = x509.load_der_x509_certificate(der)
+        else:
+            self.fail(msg)
 
     def test_key_type_and_size(self):
         pk = self.cert.public_key()
@@ -219,4 +228,4 @@ class TestPublicSectorSPIDCertificate(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    unittest.main(verbosity=int(os.getenv('VERBOSITY', '1')))
