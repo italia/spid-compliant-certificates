@@ -51,14 +51,14 @@ policyIdentifier=agid
 userNotice=@agid_notice
 
 [ agid_notice ]
-explicitText="cert_SP_Pubblici"
+explicitText="AgIDroot"
 
 [ spid_policies ]
 policyIdentifier=spid-publicsector-SP
 userNotice=@spid_notice
 
 [ spid_notice ]
-explicitText="Service Provider SPID Pubblico"
+explicitText="cert_SP_Pub"
 EOF
 
 cat <<EOF
