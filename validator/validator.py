@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import base64
 import logging
 import os
@@ -94,7 +92,7 @@ def basic_constraints_is_ok(e: Extension) -> bool:
     return is_ok
 
 
-def certificate_policies_is_ok(e: Extension) -> Tuple[bool, str]:
+def certificate_policies_is_ok(e: Extension, sector: str) -> Tuple[bool, str]:
     is_ok = False
 
     # check if extension is not critical
@@ -103,7 +101,13 @@ def certificate_policies_is_ok(e: Extension) -> Tuple[bool, str]:
         return is_ok, msg
 
     # check policies
-    mandatory_policies = ['1.3.76.16', '1.3.76.16.4.2.1']
+    mandatory_policies = ['1.3.76.16']
+    if sector == 'public':
+        mandatory_policies.append('1.3.76.16.4.2.1')
+    elif sector == 'private':
+        mandatory_policies.append('1.3.76.16.4.3.1')
+    else:
+        pass
 
     policies = e.value
     cert_policies = [p.policy_identifier.dotted_string for p in policies]
@@ -117,17 +121,25 @@ def certificate_policies_is_ok(e: Extension) -> Tuple[bool, str]:
         if p.policy_identifier.dotted_string == '1.3.76.16':
             for q in p.policy_qualifiers:
                 if isinstance(q, x509.extensions.UserNotice):
-                    if q.explicit_text != 'cert_SP_Pubblici':
+                    if q.explicit_text != 'AgIDroot':
                         msg = ('UserNotice.ExplicitText for policy %s is not valid (%s)'  # noqa
                                % (p.policy_identifier.dotted_string, q.explicit_text))  # noqa
                         return is_ok, msg
         elif p.policy_identifier.dotted_string == '1.3.76.16.4.2.1':
             for q in p.policy_qualifiers:
                 if isinstance(q, x509.extensions.UserNotice):
-                    if q.explicit_text != 'Service Provider SPID Pubblico':
+                    if q.explicit_text != 'cert_SP_Pub':
                         msg = ('UserNotice.ExplicitText for policy %s is not valid (%s)'  # noqa
                                % (p.policy_identifier.dotted_string, q.explicit_text))  # noqa
                         return is_ok, msg
+        elif p.policy_identifier.dotted_string == '1.3.76.16.4.3.1':
+            for q in p.policy_qualifiers:
+                if isinstance(q, x509.extensions.UserNotice):
+                    if q.explicit_text != 'cert_SP_Priv':
+                        msg = ('UserNotice.ExplicitText for policy %s is not valid (%s)'  # noqa
+                               % (p.policy_identifier.dotted_string, q.explicit_text))  # noqa
+                        return is_ok, msg
+
         else:
             pass
 
@@ -136,7 +148,9 @@ def certificate_policies_is_ok(e: Extension) -> Tuple[bool, str]:
     return is_ok, None
 
 
-class TestPublicSectorSPIDCertificate(unittest.TestCase):
+class TestBase(unittest.TestCase):
+    sector = None
+
     def setUp(self):
         der, msg = pem_to_der(os.getenv('CERT_FILE', 'crt.pem'))
         if der:
@@ -160,7 +174,7 @@ class TestPublicSectorSPIDCertificate(unittest.TestCase):
 
         self.assertTrue(alg_is_ok)
 
-    def test_mandatory_extensions(self):
+    def test_extensions(self):
         mandatory_exts = [
             '2.5.29.15',  # keyUsage
             '2.5.29.19',  # basicConstraints
@@ -180,8 +194,8 @@ class TestPublicSectorSPIDCertificate(unittest.TestCase):
                 self.assertTrue(key_usage_is_ok(ext))
             elif ext.oid.dotted_string == '2.5.29.19':
                 self.assertTrue(basic_constraints_is_ok(ext))
-            elif ext.oid.dotted_string == '2.5.29.32':
-                res, msg = certificate_policies_is_ok(ext)
+            if ext.oid.dotted_string == '2.5.29.32':
+                res, msg = certificate_policies_is_ok(ext, self.sector)
                 self.assertTrue(res, msg=msg)
             else:
                 pass
@@ -222,10 +236,22 @@ class TestPublicSectorSPIDCertificate(unittest.TestCase):
             oid = attr.oid.dotted_string
             value = attr.value
             if oid == '2.5.4.97':
-                self.assertTrue(value.startswith('PA:IT-'))
+                if self.sector == 'public':
+                    self.assertTrue(value.startswith('PA:IT-'))
+                elif self.sector == 'private':
+                    self.assertIn(True, [
+                        value.startswith('CF:IT-'),
+                        value.startswith('VATIT-'),
+                    ])
+                else:
+                    pass
             elif oid == '2.5.4.6':
                 self.assertEqual(len(value), 2)
 
 
-if __name__ == '__main__':
-    unittest.main(verbosity=int(os.getenv('VERBOSITY', '1')))
+class TestPublicSector(TestBase):
+    sector = 'public'
+
+
+class TestPrivateSector(TestBase):
+    sector = 'private'
