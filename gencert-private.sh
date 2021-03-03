@@ -1,12 +1,12 @@
 #!/bin/sh
 
-csr="csr.csr"
+csr="csr.pem"
 key="key.pem"
 
 # check organizationIdentifier valid value (VATID-XXX... or CF:IT-XXX..)
 
 if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c -P "^(CF:IT-[\d\w]{16}|VATIT-\d{11})$") -ne 1 ]; then  
-    echo "[E] ORGANIZATION_IDENTIFIER must be a valid Partita Iva or Codice Fiscale"
+    echo "[E] ORGANIZATION_IDENTIFIER must be in the form of 'CF:IT-<codice fiscale>' or 'VATIT-<partita iva>'"
     exit 1
 fi
 
@@ -55,7 +55,7 @@ ${ORGID_OID}
 commonName=${ENTITY_ID}
 countryName=IT
 localityName=${LOCALITY_NAME}
-organizationIdentifier=$ORGANIZATION_IDENTIFIER
+organizationIdentifier=${ORGANIZATION_IDENTIFIER}
 organizationName=${ORGANIZATION_NAME}
 uri=${ENTITY_ID}
 
@@ -122,7 +122,7 @@ EOF
 
 cat <<EOF
 ## --------------------------------------------------------------------------
-## Csr digest in sha256
+## Digest of the CSR file
 ## --------------------------------------------------------------------------
 $(sha256sum ${csr})
 EOF
