@@ -41,6 +41,14 @@ if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c '^PA:IT-') -ne 1 ]; then
     exit 1
 fi
 
+IPA_CODE=$(echo ${ORGANIZATION_IDENTIFIER} | sed -e "s/PA:IT-//g")
+CHECK_URL="https://indicepa.gov.it/ricerca/n-dettaglioamministrazione.php?cod_amm=${IPA_CODE}"
+if [ $(curl -s ${CHECK_URL} | grep -c ${IPA_CODE}) -lt 1 ]; then
+    echo "[E] ORGANIZATION_IDENTIFIER refers to something that does not exists"
+    echo "[I] Check it by yourself at ${CHECK_URL}"
+    exit 1
+fi
+
 ORGANIZATION_NAME=${ORGANIZATION_NAME:=""}
 if [ -z ${ORGANIZATION_NAME} ]; then
     echo "[E] ORGANIZATION_NAME must be set"
