@@ -5,11 +5,23 @@ key="key.pem"
 
 # check organizationIdentifier valid value (VATID-XXX... or CF:IT-XXX..)
 
-if echo "$ORGANIZATION" | grep -qe 'CF:IT-*' || echo "$ORGANIZATION" | grep -qe 'VATID-*'; then  
-    echo $ORGANIZATION valid value
+if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c -P "^(CF:IT-[\d\w]{16})|^(VAT[A-Z]{2}-\d{11})") -ge 1 ]; then  
+    echo $ORGANIZATION_IDENTIFIER valid value
 else
-    echo $ORGANIZATION not valid value
-    exit
+    echo $ORGANIZATION_IDENTIFIER not valid value for organizationIdentifier
+    exit 1
+fi
+
+KEY_LEN=${KEY_LEN:="2048"}
+if [ $(echo ${KEY_LEN} | grep -c -P "^(2048|3072|4096)$") -ne 1 ]; then
+    echo "[E] KEY_LEN must be one of [2048, 3072, 4096], now ${KEY_LEN}"
+    exit 1
+fi
+
+MD_ALG=${MD_ALG:="sha256"}
+if [ $(echo ${MD_ALG} | grep -c -P "^(sha256|sha512)$") -ne 1 ]; then
+    echo "[E] MD_ALG must be one of [sha256, sha512], now ${MD_ALG}"
+    exit 1
 fi
 
 # generate configuration file
@@ -28,8 +40,8 @@ cat > "${openssl_conf}" <<EOF
 oid_section=spid_oids
 
 [ req ]
-default_bits=${KEY_LENGTH:=2048}
-default_md=${MD_ALG:=sha256}
+default_bits=${KEY_LEN}
+default_md=${MD_ALG}
 distinguished_name=dn
 encrypt_key=no
 prompt=no
@@ -38,7 +50,6 @@ req_extensions=req_ext
 [ spid_oids ]
 agid=1.3.76.16
 spid-privatesector-SP=1.3.76.16.4.3.1
-spid-publicsector-SP=1.3.76.16.4.2.1
 uri=2.5.4.83
 ${ORGID_OID}
 
@@ -46,7 +57,7 @@ ${ORGID_OID}
 commonName=${ENTITY_ID}
 countryName=IT
 localityName=${LOCALITY_NAME}
-organizationIdentifier=$ORGANIZATION
+organizationIdentifier=$ORGANIZATION_IDENTIFIER
 organizationName=${ORGANIZATION_NAME}
 uri=${ENTITY_ID}
 
@@ -82,7 +93,6 @@ EOF
 ## --------------------------------------------------------------------------
 
 openssl req -config ${openssl_conf} -new \
-	-nodes \
 	-keyout ${key} \
 	-out ${csr} 
 	-extensions req_ext 2>/dev/null
@@ -114,7 +124,7 @@ EOF
 
 cat <<EOF
 ## --------------------------------------------------------------------------
-## Extract hash in sha256 from csr
+## Csr digest in sha256
 ## --------------------------------------------------------------------------
 $(sha256sum ${csr})
 EOF
