@@ -4,9 +4,23 @@ crt="crt.pem"
 csr="csr.pem"
 key="key.pem"
 
-openssl_conf=$(mktemp)
+# validate configuration
+
+KEY_LENGTH=${KEY_LEN:="3072"}
+if [ $(echo ${KEY_LEN} | grep -c -P "^(2048|3072|4096)$") -ne 1 ]; then
+    echo "[E] KEY_LEN must be one of [2048, 3072, 4096], now ${KEY_LEN}"
+    exit 1
+fi
+
+MD_ALG=${MD_ALG:="sha256"}
+if [ $(echo ${MD_ALG} | grep -c -P "^(sha256|sha512)$") -ne 1 ]; then
+    echo "[E] MD_ALG must be one of [sha256, sha512], now ${MD_ALG}"
+    exit 1
+fi
 
 # generate configuration file
+
+openssl_conf=$(mktemp)
 
 if [ $(openssl version | grep -c "OpenSSL 1.0") -ge 1 ]; then
     ORGID_OID="organizationIdentifier=2.5.4.97"
@@ -20,8 +34,8 @@ cat > ${openssl_conf} <<EOF
 oid_section=spid_oids
 
 [ req ]
-default_bits=3072
-default_md=sha384
+default_bits=${KEY_LEN}
+default_md=${MD_ALG}
 distinguished_name=dn
 encrypt_key=no
 prompt=no
