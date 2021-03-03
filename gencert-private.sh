@@ -5,10 +5,8 @@ key="key.pem"
 
 # check organizationIdentifier valid value (VATID-XXX... or CF:IT-XXX..)
 
-if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c -P "^(CF:IT-[\d\w]{16})|^(VAT[A-Z]{2}-\d{11})") -ge 1 ]; then  
-    echo $ORGANIZATION_IDENTIFIER valid value
-else
-    echo $ORGANIZATION_IDENTIFIER not valid value for organizationIdentifier
+if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c -P "^(CF:IT-[\d\w]{16}|VATIT-\d{11})$") -ne 1 ]; then  
+    echo "[E] ORGANIZATION_IDENTIFIER must be a valid Partita Iva or Codice Fiscale"
     exit 1
 fi
 
