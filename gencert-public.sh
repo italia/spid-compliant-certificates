@@ -6,7 +6,7 @@ key="key.pem"
 
 # validate configuration
 
-KEY_LENGTH=${KEY_LEN:="3072"}
+KEY_LEN=${KEY_LEN:="3072"}
 if [ $(echo ${KEY_LEN} | grep -c -P "^(2048|3072|4096)$") -ne 1 ]; then
     echo "[E] KEY_LEN must be one of [2048, 3072, 4096], now ${KEY_LEN}"
     exit 1
