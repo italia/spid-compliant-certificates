@@ -3,12 +3,7 @@
 csr="csr.pem"
 key="key.pem"
 
-# check organizationIdentifier valid value (VATID-XXX... or CF:IT-XXX..)
-
-if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c -P "^(CF:IT-[\d\w]{16}|VATIT-\d{11})$") -ne 1 ]; then  
-    echo "[E] ORGANIZATION_IDENTIFIER must be in the form of 'CF:IT-<codice fiscale>' or 'VATIT-<partita iva>'"
-    exit 1
-fi
+# check input parameters
 
 KEY_LEN=${KEY_LEN:="2048"}
 if [ $(echo ${KEY_LEN} | grep -c -P "^(2048|3072|4096)$") -ne 1 ]; then
@@ -19,6 +14,41 @@ fi
 MD_ALG=${MD_ALG:="sha256"}
 if [ $(echo ${MD_ALG} | grep -c -P "^(sha256|sha512)$") -ne 1 ]; then
     echo "[E] MD_ALG must be one of [sha256, sha512], now ${MD_ALG}"
+    exit 1
+fi
+
+COMMON_NAME=${COMMON_NAME:=""}
+if [ -z ${COMMON_NAME} ]; then
+    echo "[E] COMMON_NAME must be set"
+    exit 1
+fi
+
+LOCALITY_NAME=${LOCALITY_NAME:=""}
+if [ -z ${LOCALITY_NAME} ]; then
+    echo "[E] LOCALITY_NAME must be set"
+    exit 1
+fi
+
+ORGANIZATION_IDENTIFIER=${ORGANIZATION_IDENTIFIER:=""}
+if [ -z ${ORGANIZATION_IDENTIFIER} ]; then
+    echo "[E] ORGANIZATION_IDENTIFIER must be set"
+    exit 1
+fi
+
+if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c -P "^(CF:IT-[\d\w]{16}|VATIT-\d{11})$") -ne 1 ]; then
+    echo "[E] ORGANIZATION_IDENTIFIER must be in the form of 'CF:IT-<codice fiscale>' or 'VATIT-<partita iva>'"
+    exit 1
+fi
+
+ORGANIZATION_NAME=${ORGANIZATION_NAME:=""}
+if [ -z ${ORGANIZATION_NAME} ]; then
+    echo "[E] ORGANIZATION_NAME must be set"
+    exit 1
+fi
+
+ENTITY_ID=${ENTITY_ID:=""}
+if [ -z ${ENTITY_ID} ]; then
+    echo "[E] ENTITY_ID must be set"
     exit 1
 fi
 
@@ -52,7 +82,7 @@ uri=2.5.4.83
 ${ORGID_OID}
 
 [ dn ]
-commonName=${ENTITY_ID}
+commonName=${COMMON_NAME}
 countryName=IT
 localityName=${LOCALITY_NAME}
 organizationIdentifier=${ORGANIZATION_IDENTIFIER}

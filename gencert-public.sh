@@ -4,7 +4,7 @@ crt="crt.pem"
 csr="csr.pem"
 key="key.pem"
 
-# validate configuration
+# check input parameters
 
 KEY_LEN=${KEY_LEN:="3072"}
 if [ $(echo ${KEY_LEN} | grep -c -P "^(2048|3072|4096)$") -ne 1 ]; then
@@ -15,6 +15,49 @@ fi
 MD_ALG=${MD_ALG:="sha256"}
 if [ $(echo ${MD_ALG} | grep -c -P "^(sha256|sha512)$") -ne 1 ]; then
     echo "[E] MD_ALG must be one of [sha256, sha512], now ${MD_ALG}"
+    exit 1
+fi
+
+COMMON_NAME=${COMMON_NAME:=""}
+if [ -z ${COMMON_NAME} ]; then
+    echo "[E] COMMON_NAME must be set"
+    exit 1
+fi
+
+LOCALITY_NAME=${LOCALITY_NAME:=""}
+if [ -z ${LOCALITY_NAME} ]; then
+    echo "[E] LOCALITY_NAME must be set"
+    exit 1
+fi
+
+ORGANIZATION_IDENTIFIER=${ORGANIZATION_IDENTIFIER:=""}
+if [ -z ${ORGANIZATION_IDENTIFIER} ]; then
+    echo "[E] ORGANIZATION_IDENTIFIER must be set"
+    exit 1
+fi
+
+if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c '^PA:IT-') -ne 1 ]; then
+    echo "[E] ORGANIZATION_IDENTIFIER must be in the format of 'PA:IT-<IPA code>'"
+    exit 1
+fi
+
+IPA_CODE=$(echo ${ORGANIZATION_IDENTIFIER} | sed -e "s/PA:IT-//g")
+CHECK_URL="https://indicepa.gov.it/ricerca/n-dettaglioamministrazione.php?cod_amm=${IPA_CODE}"
+if [ $(curl -s ${CHECK_URL} | grep -c ${IPA_CODE}) -lt 1 ]; then
+    echo "[E] ORGANIZATION_IDENTIFIER refers to something that does not exists"
+    echo "[I] Check it by yourself at ${CHECK_URL}"
+    exit 1
+fi
+
+ORGANIZATION_NAME=${ORGANIZATION_NAME:=""}
+if [ -z ${ORGANIZATION_NAME} ]; then
+    echo "[E] ORGANIZATION_NAME must be set"
+    exit 1
+fi
+
+ENTITY_ID=${ENTITY_ID:=""}
+if [ -z ${ENTITY_ID} ]; then
+    echo "[E] ENTITY_ID must be set"
     exit 1
 fi
 
