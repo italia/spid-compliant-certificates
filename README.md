@@ -70,3 +70,40 @@ implementation from Agenzia per l'Italia Digitale.
 
     The output produced by the script (see the ASN.1 dumps) allows to check
     if the specifications were honoured.
+
+## Key and CSR for private sector certificate (with Docker)
+
+1.  Build the Docker image
+
+        $ docker build --tag psmiraglia/spid-compliant-certificates .
+
+2.  Run the following command to configure the environment according to your
+    needs
+
+        $ cat > my.env <<EOF
+        COMMON_NAME=Comune di Roma
+        DAYS=3650
+        ENTITY_ID=https://spid.comune.roma.it
+        KEY_LEN=3072
+        LOCALITY_NAME=Roma
+        MD_ALG=sha256
+        ORGANIZATION_IDENTIFIER=VATIT-12345678901
+        ORGANIZATION_NAME=Comune di Roma
+        SPID_SECTOR=private
+        EOF
+
+3.  Create a directory where new certificate(s) will be stored
+
+        $ mkdir /tmp/mycert
+
+4.  Run the container as in the following
+
+        $ docker run -ti --rm \
+            --env-file my.env \
+            -v "/tmp/mycert:/spid-certificate" \
+            psmiraglia/spid-compliant-certificates
+
+5.  Enjoy with your new private key and CSR
+
+        $ ls /tmp/mycert
+        csr.pem  key.pem
