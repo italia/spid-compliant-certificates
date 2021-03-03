@@ -5,7 +5,7 @@ set -euo pipefail
 # check input parameters
 
 SPID_SECTOR=${SPID_SECTOR:=""}
-if [ "X${SPID_SECTOR}" == "X" ]; then
+if [ -z ${SPID_SECTOR} ]; then
     echo "[E] SPID_SECTOR must be set"
     exit 1
 fi
