@@ -123,9 +123,9 @@ EOF
 ## --------------------------------------------------------------------------
 
 openssl req -config ${openssl_conf} -new \
-	-keyout ${key} \
-	-out ${csr} 
-	-extensions req_ext 2>/dev/null
+    -keyout ${key} \
+    -out ${csr} \
+    -extensions req_ext 2>/dev/null
 
 cat <<EOF
 ## --------------------------------------------------------------------------
