@@ -19,7 +19,9 @@ implementation from Agenzia per l'Italia Digitale.
         COMMON_NAME=Comune di Roma
         DAYS=3650
         ENTITY_ID=https://spid.comune.roma.it
+        KEY_LEN=3072
         LOCALITY_NAME=Roma
+        MD_ALG=sha512
         ORGANIZATION_IDENTIFIER=PA:IT-c_h501
         ORGANIZATION_NAME=Comune di Roma
         SPID_SECTOR=public
@@ -53,7 +55,9 @@ implementation from Agenzia per l'Italia Digitale.
         export COMMON_NAME="Comune di Roma"
         export DAYS="3650"
         export ENTITY_ID="https://spid.comune.roma.it"
+        export KEY_LEN="3072"
         export LOCALITY_NAME="Roma"
+        export MD_ALG="sha512"
         export ORGANIZATION_IDENTIFIER="PA:IT-c_h501"
         export ORGANIZATION_NAME="Comune di Roma"
         EOF
