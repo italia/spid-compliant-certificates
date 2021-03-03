@@ -33,4 +33,4 @@ RUN chmod +x \
     /usr/local/bin/gencert-public
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
-WORKDIR /spid-certificate
+WORKDIR /output

@@ -35,7 +35,7 @@ implementation from Agenzia per l'Italia Digitale.
 
         $ docker run -ti --rm \
             --env-file my.env \
-            -v "/tmp/mycert:/spid-certificate" \
+            -v "/tmp/mycert:/output" \
             psmiraglia/spid-compliant-certificates
 
 5.  Enjoy with your new self-signed certificate
@@ -92,7 +92,7 @@ implementation from Agenzia per l'Italia Digitale.
         SPID_SECTOR=private
         EOF
 
-3.  Create a directory where new certificate(s) will be stored
+3.  Create a directory where the new private key and CSR will be stored
 
         $ mkdir /tmp/mycert
 
@@ -100,7 +100,7 @@ implementation from Agenzia per l'Italia Digitale.
 
         $ docker run -ti --rm \
             --env-file my.env \
-            -v "/tmp/mycert:/spid-certificate" \
+            -v "/tmp/mycert:/output" \
             psmiraglia/spid-compliant-certificates
 
 5.  Enjoy with your new private key and CSR
