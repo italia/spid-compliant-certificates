@@ -146,11 +146,20 @@ class TestPublicSectorSPIDCertificate(unittest.TestCase):
 
     def test_key_type_and_size(self):
         pk = self.cert.public_key()
-        self.assertTrue(isinstance(pk, rsa.RSAPublicKey))
-        self.assertGreaterEqual(pk.key_size, 2048)
+
+        msg = 'The key must be RSA (now %s)' % type(pk)
+        self.assertTrue(isinstance(pk, rsa.RSAPublicKey), msg=msg)
+
+        exp_size = 2048
+        msg = 'The key length must be >= %s (now %d)' % (exp_size, pk.key_size)
+        self.assertGreaterEqual(pk.key_size, exp_size, msg=msg)
+
+        exp_size = 4096
+        msg = 'The key length must be <= %s (now %d)' % (exp_size, pk.key_size)
+        self.assertLessEqual(pk.key_size, exp_size, msg)
 
     def test_digest_algorithm(self):
-        allowed_algs = [hashes.SHA256, hashes.SHA384, hashes.SHA512]
+        allowed_algs = [hashes.SHA256, hashes.SHA512]
         alg_is_ok = False
 
         _alg = self.cert.signature_hash_algorithm
@@ -158,7 +167,8 @@ class TestPublicSectorSPIDCertificate(unittest.TestCase):
             if isinstance(_alg, alg):
                 alg_is_ok = True
 
-        self.assertTrue(alg_is_ok)
+        msg = 'The digest algorithm %s is not allowed' % _alg.name
+        self.assertTrue(alg_is_ok, msg=msg)
 
     def test_mandatory_extensions(self):
         mandatory_exts = [
