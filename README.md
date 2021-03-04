@@ -86,7 +86,7 @@ implementation from Agenzia per l'Italia Digitale.
         KEY_LEN=3072
         LOCALITY_NAME=Roma
         MD_ALG=sha256
-        ORGANIZATION_IDENTIFIER="VATIT-02438750586"
+        ORGANIZATION_IDENTIFIER=VATIT-02438750586
         ORGANIZATION_NAME=Comune di Roma
         SPID_SECTOR=private
         EOF
