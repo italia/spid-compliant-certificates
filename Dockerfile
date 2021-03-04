@@ -18,17 +18,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM alpine:3
+FROM debian:testing
 LABEL maintainer="Paolo Smiraglia <paolo.smiraglia@gmail.com>"
 
-RUN apk add --update --no-cache \
+RUN apt-get update && apt-get install -y \
+        curl \
         openssl
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY gencert-private.sh /usr/local/bin/gencert-private
 COPY gencert-public.sh /usr/local/bin/gencert-public
 RUN chmod +x \
     /usr/local/bin/docker-entrypoint \
+    /usr/local/bin/gencert-private \
     /usr/local/bin/gencert-public
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
-WORKDIR /spid-certificate
+WORKDIR /output
