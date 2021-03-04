@@ -22,6 +22,7 @@ FROM debian:testing
 LABEL maintainer="Paolo Smiraglia <paolo.smiraglia@gmail.com>"
 
 RUN apt-get update && apt-get install -y \
+        curl \
         openssl
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
