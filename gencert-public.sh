@@ -40,19 +40,19 @@ if [ $(echo ${MD_ALG} | grep -c -P "^(sha256|sha512)$") -ne 1 ]; then
 fi
 
 COMMON_NAME=${COMMON_NAME:=""}
-if [ -z ${COMMON_NAME} ]; then
+if [ $(echo ${COMMON_NAME} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
     echo "[E] COMMON_NAME must be set"
     exit 1
 fi
 
 LOCALITY_NAME=${LOCALITY_NAME:=""}
-if [ -z ${LOCALITY_NAME} ]; then
+if [ $(echo ${LOCALITY_NAME} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
     echo "[E] LOCALITY_NAME must be set"
     exit 1
 fi
 
 ORGANIZATION_IDENTIFIER=${ORGANIZATION_IDENTIFIER:=""}
-if [ -z ${ORGANIZATION_IDENTIFIER} ]; then
+if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
     echo "[E] ORGANIZATION_IDENTIFIER must be set"
     exit 1
 fi
@@ -71,13 +71,13 @@ if [ $(curl -s ${CHECK_URL} | grep -c ${IPA_CODE}) -lt 1 ]; then
 fi
 
 ORGANIZATION_NAME=${ORGANIZATION_NAME:=""}
-if [ -z ${ORGANIZATION_NAME} ]; then
+if [ $(echo ${ORGANIZATION_NAME} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
     echo "[E] ORGANIZATION_NAME must be set"
     exit 1
 fi
 
 ENTITY_ID=${ENTITY_ID:=""}
-if [ -z ${ENTITY_ID} ]; then
+if [ $(echo ${ENTITY_ID} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
     echo "[E] ENTITY_ID must be set"
     exit 1
 fi
