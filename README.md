@@ -29,7 +29,7 @@ implementation from Agenzia per l'Italia Digitale.
         $ cat > myenv.sh <<EOF
         export COMMON_NAME="Comune di Roma"
         export DAYS="3650"
-        export ENTITY_ID="https://spid.comune.roma.it"
+        export ENTITY_ID="https://spid.comune.roma.it/metadata"
         export KEY_LEN="3072"
         export LOCALITY_NAME="Roma"
         export MD_ALG="sha512"
@@ -65,7 +65,7 @@ implementation from Agenzia per l'Italia Digitale.
 
         $ cat > myenv.sh <<EOF
         export COMMON_NAME="Comune di Roma"
-        export ENTITY_ID="https://spid.comune.roma.it"
+        export ENTITY_ID="https://spid.comune.roma.it/metadata"
         export KEY_LEN="3072"
         export LOCALITY_NAME="Roma"
         export MD_ALG="sha256"

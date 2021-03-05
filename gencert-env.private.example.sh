@@ -1,5 +1,5 @@
 COMMON_NAME=Comune di Roma
-ENTITY_ID=https://spid.comune.roma.it
+ENTITY_ID=https://spid.comune.roma.it/metadata
 KEY_LEN=3072
 LOCALITY_NAME=Roma
 MD_ALG=sha256
