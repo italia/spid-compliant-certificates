@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+
 csr="csr.pem"
 key="key.pem"
 
@@ -39,7 +40,7 @@ if [ $(echo ${MD_ALG} | grep -c -P "^(sha256|sha512)$") -ne 1 ]; then
 fi
 
 COMMON_NAME=${COMMON_NAME:=""}
-if [ -z "${COMMON_NAME}" ]; then
+if [ -z ${COMMON_NAME} ]; then
     echo "[E] COMMON_NAME must be set"
     exit 1
 fi
@@ -62,7 +63,7 @@ if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c -P "^(CF:IT-[\d\w]{16}|VATIT-\d
 fi
 
 ORGANIZATION_NAME=${ORGANIZATION_NAME:=""}
-if [ -z "${ORGANIZATION_NAME}" ]; then
+if [ -z ${ORGANIZATION_NAME} ]; then
     echo "[E] ORGANIZATION_NAME must be set"
     exit 1
 fi
