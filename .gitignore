@@ -1,3 +1,2 @@
 *.crt
 *.key
-generated-certs/*.pem
