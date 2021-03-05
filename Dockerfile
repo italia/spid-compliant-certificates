@@ -18,12 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM debian:testing
+FROM alpine:latest
 LABEL maintainer="Paolo Smiraglia <paolo.smiraglia@gmail.com>"
 
-RUN apt-get update && apt-get install -y \
-        curl \
-        openssl
+RUN apk update && apk add curl grep openssl
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY gencert-private.sh /usr/local/bin/gencert-private

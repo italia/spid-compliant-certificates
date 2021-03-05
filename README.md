@@ -8,42 +8,17 @@ implementation from Agenzia per l'Italia Digitale.
 
 ## Private key, CSR and Self-signed certificate for public sector (with Docker)
 
-1.  Build the Docker image
+1.  Copy the file `gencert-env.public.example.sh` into `gencert-env.sh` and edit it according to your
+    needs, following the rules in the bottom section **Configuration parameters**
 
-        $ docker build --tag psmiraglia/spid-compliant-certificates .
+3.  Run the script `gencert-with-docker.sh`
 
-2.  Run the following command to configure the environment according to your
-    needs
+3.  Enjoy with your new self-signed certificate
 
-        $ cat > my.env <<EOF
-        COMMON_NAME=Comune di Roma
-        DAYS=3650
-        ENTITY_ID=https://spid.comune.roma.it
-        KEY_LEN=3072
-        LOCALITY_NAME=Roma
-        MD_ALG=sha512
-        ORGANIZATION_IDENTIFIER=PA:IT-c_h501
-        ORGANIZATION_NAME=Comune di Roma
-        SPID_SECTOR=public
-        EOF
-
-3.  Create a directory where new certificate(s) will be stored
-
-        $ mkdir /tmp/mycert
-
-4.  Run the container as in the following
-
-        $ docker run -ti --rm \
-            --env-file my.env \
-            -v "/tmp/mycert:/output" \
-            psmiraglia/spid-compliant-certificates
-
-5.  Enjoy with your new self-signed certificate
-
-        $ ls /tmp/mycert
+        $ ls ./generated-certs/
         crt.pem  csr.pem  key.pem
 
-    NOTE: The container generates also a certificate signing request (`csr.pem`)
+    NOTE: This generates also a certificate signing request (`csr.pem`)
     that can be submitted to AgID in order to obtain a signed certificate.
 
 ## Private key, CSR and Self-signed certificate for public sector
@@ -73,38 +48,14 @@ implementation from Agenzia per l'Italia Digitale.
 
 ## Private key and CSR for private sector (with Docker)
 
-1.  Build the Docker image
+1.  Copy the file `gencert-env.private.example.sh` into `gencert-env.sh` and edit it according to your
+    needs, following the rules in the bottom section **Configuration parameters**
 
-        $ docker build --tag psmiraglia/spid-compliant-certificates .
+3.  Run the script `gencert-with-docker.sh`
 
-2.  Run the following command to configure the environment according to your
-    needs
+3.  Enjoy with your new private key and CSR
 
-        $ cat > my.env <<EOF
-        COMMON_NAME=Comune di Roma
-        ENTITY_ID=https://spid.comune.roma.it
-        KEY_LEN=3072
-        LOCALITY_NAME=Roma
-        MD_ALG=sha256
-        ORGANIZATION_IDENTIFIER=VATIT-02438750586
-        ORGANIZATION_NAME=Comune di Roma
-        SPID_SECTOR=private
-        EOF
-
-3.  Create a directory where the new private key and CSR will be stored
-
-        $ mkdir /tmp/mycert
-
-4.  Run the container as in the following
-
-        $ docker run -ti --rm \
-            --env-file my.env \
-            -v "/tmp/mycert:/output" \
-            psmiraglia/spid-compliant-certificates
-
-5.  Enjoy with your new private key and CSR
-
-        $ ls /tmp/mycert
+        $ ls ./generated-certs/
         csr.pem  key.pem
 
 ## Private key and CSR for private sector
