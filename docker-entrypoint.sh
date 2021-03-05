@@ -38,7 +38,7 @@ case ${SPID_SECTOR} in
         gencert-private
         ;;
     *)
-    echo "[E] SPID_SECTOR must be one of ['public', 'private'] but is set to '${SPID_SECTOR}'"
+    echo "[E] SPID_SECTOR must be one of ['public', 'private'] but it's set to '${SPID_SECTOR}'"
     exit 1
         ;;
 esac

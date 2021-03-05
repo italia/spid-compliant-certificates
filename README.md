@@ -8,10 +8,15 @@ implementation from Agenzia per l'Italia Digitale.
 
 ## Private key, CSR and Self-signed certificate for public sector (with Docker)
 
-1.  Copy the file `gencert-env.public.example.sh` into `gencert-env.sh` and edit it according to your
+1.  Copy the file `gencert-env.public.example.sh` into `gencert-env.sh` and customize it according to your
     needs, following the rules in the bottom section **Configuration parameters**
 
-3.  Run the script `gencert-with-docker.sh`
+        $ cp gencert-env.public.example.sh gencert-env.sh
+        $ vi gencert-env.sh
+
+2.  Run the script `gencert-with-docker.sh`
+
+        $ ./gencert-with-docker.sh
 
 3.  Enjoy with your new self-signed certificate
 
@@ -48,10 +53,15 @@ implementation from Agenzia per l'Italia Digitale.
 
 ## Private key and CSR for private sector (with Docker)
 
-1.  Copy the file `gencert-env.private.example.sh` into `gencert-env.sh` and edit it according to your
+1.  Copy the file `gencert-env.private.example.sh` into `gencert-env.sh` and customize it according to your
     needs, following the rules in the bottom section **Configuration parameters**
 
-3.  Run the script `gencert-with-docker.sh`
+        $ cp gencert-env.private.example.sh gencert-env.sh
+        $ vi gencert-env.sh
+
+2.  Run the script `gencert-with-docker.sh`
+
+        $ ./gencert-with-docker.sh
 
 3.  Enjoy with your new private key and CSR
 

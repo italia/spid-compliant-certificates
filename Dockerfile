@@ -21,7 +21,11 @@
 FROM alpine:latest
 LABEL maintainer="Paolo Smiraglia <paolo.smiraglia@gmail.com>"
 
-RUN apk update && apk add curl grep openssl
+RUN apk update \
+    && apk add --no-cache \
+        curl \
+        grep \
+        openssl
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY gencert-private.sh /usr/local/bin/gencert-private

@@ -23,8 +23,14 @@ LABEL maintainer="Paolo Smiraglia <paolo.smiraglia@gmail.com>"
 
 RUN pip install -U pip
 
-RUN apk update
-RUN apk add gcc cargo libffi-dev musl-dev openssl-dev python3-dev
+RUN apk update \
+    && apk add --no-cache \
+        gcc \
+        cargo \
+        libffi-dev \
+        musl-dev \
+        openssl-dev \
+        python3-dev
 
 WORKDIR /run/spid-complaint-certificates-validator/
 
@@ -33,4 +39,5 @@ COPY ./validator.py ./validator.py
 
 RUN pip install -r requirements.txt
 
-CMD python3 validator.py
+ENTRYPOINT ["/usr/local/bin/python3", "validator.py"]
+CMD []
