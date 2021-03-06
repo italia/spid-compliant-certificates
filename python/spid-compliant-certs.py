@@ -47,20 +47,32 @@ MD_ALGS = {
 }
 
 
-def validate_arguments(args):
-    # validate value for organization identifier
-    if args.sector == 'private':
-        pattern = r'^(CF:IT-[a-zA-Z0-9]{16}|VATIT-\d{11})$'
-    elif args.sector == 'public':
-        pattern = r'^PA:IT-\d{11}$'
-    else:
-        emsg = 'Invalid value for sector (%s)' % args.sector
-        raise Exception(emsg)
-
+def _validate_private_arguments(args):
+    # validate organizationIdentifier
+    pattern = r'^(CF:IT-[a-zA-Z0-9]{16}|VATIT-\d{11})$'
     if not re.match(pattern, args.org_id):
         emsg = ('Invalid value for organization identifier (%s)'
                 % args.org_id)
         raise ValueError(emsg)
+
+
+def _validate_public_arguments(args):
+    # validate organizationIdentifier
+    pattern = r'^PA:IT-\d{11}$'
+    if not re.match(pattern, args.org_id):
+        emsg = ('Invalid value for organization identifier (%s)'
+                % args.org_id)
+        raise ValueError(emsg)
+
+
+def validate_arguments(args):
+    if args.sector == 'private':
+        _validate_private_arguments(args)
+    elif args.sector == 'public':
+        _validate_public_arguments(args)
+    else:
+        emsg = 'Invalid value for sector (%s)' % args.sector
+        raise Exception(emsg)
 
 
 def gen_private_key(key_size: int, outfile: str) -> rsa.RSAPrivateKey:
