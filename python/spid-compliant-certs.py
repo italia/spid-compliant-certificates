@@ -24,6 +24,7 @@ import argparse
 import logging
 import os
 import pathlib
+import re
 import sys
 
 from cryptography.hazmat.primitives import serialization
@@ -37,6 +38,22 @@ sh.setFormatter(formatter)
 LOG = logging.getLogger()
 LOG.setLevel(logging.DEBUG)
 LOG.addHandler(sh)
+
+
+def validate_arguments(args):
+    # validate value for organization identifier
+    if args.sector == 'private':
+        pattern = r'^(CF:IT-[a-zA-Z0-9]{16}|VATIT-\d{11})$'
+    elif args.sector == 'public':
+        pattern = r'^PA:IT-\d{11}$'
+    else:
+        emsg = 'Invalid value for sector (%s)' % args.sector
+        raise Exception(emsg)
+
+    if not re.match(pattern, args.org_id):
+        emsg = ('Invalid value for organization identifier (%s)'
+                % args.org_id)
+        raise ValueError(emsg)
 
 
 def gen_private_key(key_size: int, outfile: str) -> rsa.RSAPrivateKey:
@@ -65,7 +82,7 @@ def gen_private_key(key_size: int, outfile: str) -> rsa.RSAPrivateKey:
 
 def generate(args):
     # validate arguments
-    print('validate arguments')
+    validate_arguments(args)
 
     # generate private key
     key = gen_private_key(args.key_size, str(args.key_out))
@@ -78,6 +95,13 @@ def generate(args):
         # generate self-signed
         print('generate self-signed certificate and store in %s'
               % (args.crt_out))
+
+
+def not_empty_string(value):
+    if not re.match(r'^\S(.*\S)?$', value):
+        emsg = 'Format "%s" is not accepted' % value
+        raise argparse.ArgumentTypeError(emsg)
+    return value
 
 
 if __name__ == '__main__':
@@ -95,6 +119,14 @@ if __name__ == '__main__':
         choices=['private', 'public'],
         default='public',
         help='select the specifications to be followed'
+    )
+
+    p.add_argument(
+        '--md-alg',
+        action='store',
+        choices=['sha256', 'sha512'],
+        default='sha256',
+        help='digest algorithm',
     )
 
     p.add_argument(
@@ -128,6 +160,48 @@ if __name__ == '__main__':
         default='crt.pem',
         help='path where the self-signed certificate will be stored',
         type=pathlib.Path
+    )
+
+    p.add_argument(
+        '--common-name',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    p.add_argument(
+        '--days',
+        action='store',
+        required=True,
+        type=int
+    )
+
+    p.add_argument(
+        '--entity-id',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    p.add_argument(
+        '--locality-name',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    p.add_argument(
+        '--org-id',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    p.add_argument(
+        '--org-name',
+        action='store',
+        required=True,
+        type=not_empty_string
     )
 
     args = p.parse_args()
