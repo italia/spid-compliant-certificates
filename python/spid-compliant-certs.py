@@ -27,17 +27,24 @@ import pathlib
 import re
 import sys
 
-from cryptography.hazmat.primitives import serialization
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
 
 # logging
-formatter = logging.Formatter('[%(levelname)1.1s] %(message)s')  # noqa
+formatter = logging.Formatter('[%(levelname)1.1s] %(lineno)d %(message)s')  # noqa
 sh = logging.StreamHandler()
 sh.setLevel(logging.DEBUG)
 sh.setFormatter(formatter)
 LOG = logging.getLogger()
 LOG.setLevel(logging.DEBUG)
 LOG.addHandler(sh)
+
+MD_ALGS = {
+    'sha256': hashes.SHA256(),
+    'sha512': hashes.SHA512(),
+}
 
 
 def validate_arguments(args):
@@ -80,6 +87,87 @@ def gen_private_key(key_size: int, outfile: str) -> rsa.RSAPrivateKey:
     return key
 
 
+def gen_csr(key, args):
+    # certificate policies
+    policies = []
+    if args.sector == 'private':
+        policies.append(x509.PolicyInformation(
+            x509.ObjectIdentifier('1.3.76.16'), [
+                x509.UserNotice(None, 'cert_SP_Privati')
+            ]
+        ))
+
+        policies.append(x509.PolicyInformation(
+            x509.ObjectIdentifier('1.3.76.16.4.3.1'), [
+                x509.UserNotice(None, 'Service Provider SPID Privato')
+            ]
+        ))
+    elif args.sector == 'public':
+        policies.append(x509.PolicyInformation(
+            x509.ObjectIdentifier('1.3.76.16'), [
+                x509.UserNotice(None, 'cert_SP_Pubblici')
+            ]
+        ))
+
+        policies.append(x509.PolicyInformation(
+            x509.ObjectIdentifier('1.3.76.16.4.2.1'), [
+                x509.UserNotice(None, 'Service Provider SPID Pubblico')
+            ]
+        ))
+    else:
+        emsg = 'Invalid value for sector (%s)' % args.sector
+        raise Exception(emsg)
+
+    # init csr builder
+    builder = x509.CertificateSigningRequestBuilder()
+
+    # compose subject name
+    builder = builder.subject_name(x509.Name([
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, args.org_name),
+        x509.NameAttribute(NameOID.COMMON_NAME, args.common_name),
+        # uri
+        x509.NameAttribute(x509.ObjectIdentifier('2.5.4.83'), args.entity_id),  # noqa
+        # organizationIdentifier
+        x509.NameAttribute(x509.ObjectIdentifier('2.5.4.97'), args.org_id),  # noqa
+        x509.NameAttribute(NameOID.COUNTRY_NAME, 'IT'),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, args.locality_name),
+    ]))
+
+    # add extensions
+    builder = builder.add_extension(
+        x509.BasicConstraints(ca=False, path_length=None),
+        critical=False
+    )
+
+    builder = builder.add_extension(
+        x509.KeyUsage(
+            digital_signature=True,
+            content_commitment=True,
+            key_encipherment=False,
+            data_encipherment=False,
+            key_agreement=False,
+            key_cert_sign=False,
+            crl_sign=False,
+            encipher_only=False,
+            decipher_only=False,
+        ),
+        critical=True
+    )
+
+    builder = builder.add_extension(
+        x509.CertificatePolicies(policies),
+        critical=False
+    )
+
+    # sign the csr
+    csr = builder.sign(key, MD_ALGS[args.md_alg])
+
+    # write to file
+    with open(str(args.csr_out), "wb") as fp:
+        fp.write(csr.public_bytes(serialization.Encoding.PEM))
+        fp.close()
+
+
 def generate(args):
     # validate arguments
     validate_arguments(args)
@@ -88,8 +176,7 @@ def generate(args):
     key = gen_private_key(args.key_size, str(args.key_out))
 
     # generate the csr
-    print('generate a CSR and store in %s'
-          % (args.csr_out))
+    gen_csr(key, args)
 
     if args.sector == 'public':
         # generate self-signed
