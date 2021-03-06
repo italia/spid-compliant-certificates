@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright 2021 Paolo Smiraglia <paolo.smiraglia@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,26 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import argparse
-import logging
 import os
-import pathlib
 import re
-import sys
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-
-# logging
-formatter = logging.Formatter('[%(levelname)1.1s] %(lineno)d %(message)s')  # noqa
-sh = logging.StreamHandler()
-sh.setLevel(logging.DEBUG)
-sh.setFormatter(formatter)
-LOG = logging.getLogger()
-LOG.setLevel(logging.DEBUG)
-LOG.addHandler(sh)
 
 MD_ALGS = {
     'sha256': hashes.SHA256(),
@@ -194,123 +179,3 @@ def generate(args):
         # generate self-signed
         print('generate self-signed certificate and store in %s'
               % (args.crt_out))
-
-
-def not_empty_string(value):
-    if not re.match(r'^\S(.*\S)?$', value):
-        emsg = 'Format "%s" is not accepted' % value
-        raise argparse.ArgumentTypeError(emsg)
-    return value
-
-
-if __name__ == '__main__':
-    p = argparse.ArgumentParser(
-        description='aaa',
-        epilog=('NOTE: The solution is provided "AS-IS" '
-                + 'and does not represent an official implementation '
-                + 'from Agenzia per l\'Italia Digitale.'),
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-
-    p.add_argument(
-        '--sector',
-        action='store',
-        choices=['private', 'public'],
-        default='public',
-        help='select the specifications to be followed'
-    )
-
-    p.add_argument(
-        '--md-alg',
-        action='store',
-        choices=['sha256', 'sha512'],
-        default='sha256',
-        help='digest algorithm',
-    )
-
-    p.add_argument(
-        '--key-size',
-        action='store',
-        choices=[2048, 3072, 4096],
-        default=2048,
-        help='size of the private key',
-        type=int
-    )
-
-    p.add_argument(
-        '--key-out',
-        action='store',
-        default='key.pem',
-        help='path where the private key will be stored',
-        type=pathlib.Path
-    )
-
-    p.add_argument(
-        '--csr-out',
-        action='store',
-        default='csr.pem',
-        help='path where the csr will be stored',
-        type=pathlib.Path
-    )
-
-    p.add_argument(
-        '--crt-out',
-        action='store',
-        default='crt.pem',
-        help='path where the self-signed certificate will be stored',
-        type=pathlib.Path
-    )
-
-    p.add_argument(
-        '--common-name',
-        action='store',
-        required=True,
-        type=not_empty_string
-    )
-
-    p.add_argument(
-        '--days',
-        action='store',
-        required=True,
-        type=int
-    )
-
-    p.add_argument(
-        '--entity-id',
-        action='store',
-        required=True,
-        type=not_empty_string
-    )
-
-    p.add_argument(
-        '--locality-name',
-        action='store',
-        required=True,
-        type=not_empty_string
-    )
-
-    p.add_argument(
-        '--org-id',
-        action='store',
-        required=True,
-        type=not_empty_string
-    )
-
-    p.add_argument(
-        '--org-name',
-        action='store',
-        required=True,
-        type=not_empty_string
-    )
-
-    args = p.parse_args()
-
-    try:
-        generate(args)
-    except Exception as e:
-        LOG.error(e)
-        sys.exit(1)
-
-    sys.exit(0)
-
-# vim: ft=python
