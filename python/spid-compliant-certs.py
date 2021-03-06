@@ -21,8 +21,46 @@
 # SOFTWARE.
 
 import argparse
+import logging
+import os
 import pathlib
 import sys
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
+# logging
+formatter = logging.Formatter('[%(levelname)1.1s] %(message)s')  # noqa
+sh = logging.StreamHandler()
+sh.setLevel(logging.DEBUG)
+sh.setFormatter(formatter)
+LOG = logging.getLogger()
+LOG.setLevel(logging.DEBUG)
+LOG.addHandler(sh)
+
+
+def gen_private_key(key_size: int, outfile: str) -> rsa.RSAPrivateKey:
+    # check if the private key file already exists
+    if os.path.exists(outfile):
+        emsg = 'File %s already exists' % outfile
+        raise Exception(emsg)
+
+    # generate private key
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=key_size
+    )
+
+    # write to file
+    with open(outfile, "wb") as fp:
+        fp.write(key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        ))
+        fp.close()
+
+    return key
 
 
 def generate(args):
@@ -30,8 +68,7 @@ def generate(args):
     print('validate arguments')
 
     # generate private key
-    print('generate a RSA key of %s bits and store in %s'
-          % (args.key_size, args.key_out))
+    key = gen_private_key(args.key_size, str(args.key_out))
 
     # generate the csr
     print('generate a CSR and store in %s'
@@ -95,7 +132,11 @@ if __name__ == '__main__':
 
     args = p.parse_args()
 
-    generate(args)
+    try:
+        generate(args)
+    except Exception as e:
+        LOG.error(e)
+        sys.exit(1)
 
     sys.exit(0)
 
