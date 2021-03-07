@@ -86,31 +86,29 @@ def gen_private_key(key_size: int, outfile: str) -> rsa.RSAPrivateKey:
 
 def gen_csr(key, args):
     # certificate policies
-    policies = []
+    policies = [
+        x509.PolicyInformation(
+            x509.ObjectIdentifier('1.3.76.16'), [
+                x509.UserNotice(None, 'AgIDroot')
+            ]
+        )
+    ]
     if args.sector == 'private':
-        policies.append(x509.PolicyInformation(
-            x509.ObjectIdentifier('1.3.76.16'), [
-                x509.UserNotice(None, 'cert_SP_Privati')
-            ]
-        ))
-
-        policies.append(x509.PolicyInformation(
-            x509.ObjectIdentifier('1.3.76.16.4.3.1'), [
-                x509.UserNotice(None, 'Service Provider SPID Privato')
-            ]
-        ))
+        policies.append(
+            x509.PolicyInformation(
+                x509.ObjectIdentifier('1.3.76.16.4.3.1'), [
+                    x509.UserNotice(None, 'cert_SP_Priv')
+                ]
+            )
+        )
     elif args.sector == 'public':
-        policies.append(x509.PolicyInformation(
-            x509.ObjectIdentifier('1.3.76.16'), [
-                x509.UserNotice(None, 'cert_SP_Pubblici')
-            ]
-        ))
-
-        policies.append(x509.PolicyInformation(
-            x509.ObjectIdentifier('1.3.76.16.4.2.1'), [
-                x509.UserNotice(None, 'Service Provider SPID Pubblico')
-            ]
-        ))
+        policies.append(
+            x509.PolicyInformation(
+                x509.ObjectIdentifier('1.3.76.16.4.2.1'), [
+                    x509.UserNotice(None, 'cert_SP_Pub')
+                ]
+            )
+        )
     else:
         emsg = 'Invalid value for sector (%s)' % args.sector
         raise Exception(emsg)
