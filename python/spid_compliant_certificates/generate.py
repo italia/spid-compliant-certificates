@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import logging
 import os
 import re
 
@@ -30,6 +31,15 @@ MD_ALGS = {
     'sha256': hashes.SHA256(),
     'sha512': hashes.SHA512(),
 }
+
+# logging
+formatter = logging.Formatter('[%(levelname)1.1s] %(message)s')  # noqa
+sh = logging.StreamHandler()
+sh.setLevel(logging.DEBUG)
+sh.setFormatter(formatter)
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
+LOG.addHandler(sh)
 
 
 def _validate_private_arguments(args):
@@ -169,9 +179,17 @@ def generate(args):
 
     # generate private key
     key = gen_private_key(args.key_size, str(args.key_out))
+    LOG.info('Private key saved to %s' % args.key_out)
+    LOG.info('  Inspect with OpenSSL: openssl rsa -in %s -noout -text'
+             % args.key_out)
 
     # generate the csr
     gen_csr(key, args)
+    LOG.info('CSR saved to %s' % args.csr_out)
+    LOG.info('  Inspect with OpenSSL: openssl req -in %s -noout -text'
+             % args.csr_out)
+    LOG.info('  Inspect with OpenSSL: openssl asn1parse -i -inform PEM -in %s'
+             % args.csr_out)
 
     if args.sector == 'public':
         # generate self-signed
