@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ENV_FILE="`pwd`/gencert-env.private.example.sh"
+ENV_FILE="`pwd`/docker.env"
 OUTPUT_DIR="`pwd`/generated-certs"
 
 if [ ! -f ${ENV_FILE} ]; then
