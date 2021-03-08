@@ -21,6 +21,7 @@
 import logging
 import pathlib
 import re
+from typing import Dict
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -42,31 +43,32 @@ LOG.setLevel(logging.DEBUG)
 LOG.addHandler(sh)
 
 
-def _validate_private_arguments(args):
+def _validate_private_arguments(cert_opts: Dict) -> None:
     # validate organizationIdentifier
     pattern = r'^(CF:IT-[a-zA-Z0-9]{16}|VATIT-\d{11})$'
-    if not re.match(pattern, args.org_id):
-        emsg = ('Invalid value for organization identifier (%s)'
-                % args.org_id)
+    org_id = cert_opts['org_id']
+    if not re.match(pattern, org_id):
+        emsg = ('Invalid value for organization identifier (%s)' % org_id)
         raise ValueError(emsg)
 
 
-def _validate_public_arguments(args):
+def _validate_public_arguments(cert_opts: Dict) -> None:
     # validate organizationIdentifier
     pattern = r'^PA:IT-\d{11}$'
-    if not re.match(pattern, args.org_id):
-        emsg = ('Invalid value for organization identifier (%s)'
-                % args.org_id)
+    org_id = cert_opts['org_id']
+    if not re.match(pattern, org_id):
+        emsg = ('Invalid value for organization identifier (%s)' % org_id)
         raise ValueError(emsg)
 
 
-def validate_arguments(args):
-    if args.sector == 'private':
-        _validate_private_arguments(args)
-    elif args.sector == 'public':
-        _validate_public_arguments(args)
+def validate_arguments(cert_opts: Dict) -> None:
+    sector = cert_opts['sector']
+    if sector == 'private':
+        _validate_private_arguments(cert_opts)
+    elif sector == 'public':
+        _validate_public_arguments(cert_opts)
     else:
-        emsg = 'Invalid value for sector (%s)' % args.sector
+        emsg = 'Invalid value for sector (%s)' % sector
         raise Exception(emsg)
 
 
@@ -94,7 +96,9 @@ def gen_private_key(key_size: int, key_out: pathlib.PosixPath) -> rsa.RSAPrivate
     return key
 
 
-def gen_csr(key, args):
+def gen_csr(key: rsa.RSAPrivateKey, cert_opts: Dict, crypto_opts: Dict) -> None:  # noqa
+    sector = cert_opts['sector']
+
     # certificate policies
     policies = [
         x509.PolicyInformation(
@@ -103,7 +107,7 @@ def gen_csr(key, args):
             ]
         )
     ]
-    if args.sector == 'private':
+    if sector == 'private':
         policies.append(
             x509.PolicyInformation(
                 x509.ObjectIdentifier('1.3.76.16.4.3.1'), [
@@ -111,7 +115,7 @@ def gen_csr(key, args):
                 ]
             )
         )
-    elif args.sector == 'public':
+    elif sector == 'public':
         policies.append(
             x509.PolicyInformation(
                 x509.ObjectIdentifier('1.3.76.16.4.2.1'), [
@@ -120,22 +124,27 @@ def gen_csr(key, args):
             )
         )
     else:
-        emsg = 'Invalid value for sector (%s)' % args.sector
+        emsg = 'Invalid value for sector (%s)' % sector
         raise Exception(emsg)
 
     # init csr builder
     builder = x509.CertificateSigningRequestBuilder()
 
     # compose subject name
+    common_name = cert_opts['common_name']
+    entity_id = cert_opts['entity_id']
+    locality_name = cert_opts['locality_name']
+    org_id = cert_opts['org_id']
+    org_name = cert_opts['org_name']
     builder = builder.subject_name(x509.Name([
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, args.org_name),
-        x509.NameAttribute(NameOID.COMMON_NAME, args.common_name),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, org_name),
+        x509.NameAttribute(NameOID.COMMON_NAME, common_name),
         # uri
-        x509.NameAttribute(x509.ObjectIdentifier('2.5.4.83'), args.entity_id),  # noqa
+        x509.NameAttribute(x509.ObjectIdentifier('2.5.4.83'), entity_id),
         # organizationIdentifier
-        x509.NameAttribute(x509.ObjectIdentifier('2.5.4.97'), args.org_id),  # noqa
+        x509.NameAttribute(x509.ObjectIdentifier('2.5.4.97'), org_id),
         x509.NameAttribute(NameOID.COUNTRY_NAME, 'IT'),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, args.locality_name),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, locality_name),
     ]))
 
     # add extensions
@@ -165,33 +174,39 @@ def gen_csr(key, args):
     )
 
     # sign the csr
-    csr = builder.sign(key, MD_ALGS[args.md_alg])
+    md_alg = MD_ALGS[crypto_opts['md_alg']]
+    csr = builder.sign(key, md_alg)
 
     # write to file
-    with open(str(args.csr_out), "wb") as fp:
+    csr_out = crypto_opts['csr_out']
+    with open(str(csr_out), "wb") as fp:
         fp.write(csr.public_bytes(serialization.Encoding.PEM))
         fp.close()
 
 
-def generate(args):
+def generate(cert_opts: Dict, crypto_opts: Dict) -> None:
     # validate arguments
-    validate_arguments(args)
+    validate_arguments(cert_opts)
 
     # generate private key
-    key = gen_private_key(args.key_size, args.key_out)
-    LOG.info('Private key saved to %s' % args.key_out)
+    key_size = crypto_opts['key_size']
+    key_out = crypto_opts['key_out']
+    key = gen_private_key(key_size, key_out)
+    LOG.info('Private key saved to %s' % key_out)
     LOG.info('  Inspect with OpenSSL: openssl rsa -in %s -noout -text'
-             % args.key_out)
+             % key_out)
 
     # generate the csr
-    gen_csr(key, args)
-    LOG.info('CSR saved to %s' % args.csr_out)
+    csr_out = crypto_opts['csr_out']
+    gen_csr(key, cert_opts, crypto_opts)
+    LOG.info('CSR saved to %s' % csr_out)
     LOG.info('  Inspect with OpenSSL: openssl req -in %s -noout -text'
-             % args.csr_out)
+             % csr_out)
     LOG.info('  Inspect with OpenSSL: openssl asn1parse -i -inform PEM -in %s'
-             % args.csr_out)
+             % csr_out)
 
-    if args.sector == 'public':
+    sector = cert_opts['sector']
+    crt_out = crypto_opts['crt_out']
+    if sector == 'public':
         # generate self-signed
-        print('generate self-signed certificate and store in %s'
-              % (args.crt_out))
+        print('generate self-signed certificate and store in %s' % crt_out)

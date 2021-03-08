@@ -147,8 +147,26 @@ if __name__ == '__main__':
 
     args = p.parse_args()
 
+    crypto_opts = {
+        'crt_out': args.crt_out,
+        'csr_out': args.csr_out,
+        'key_out': args.key_out,
+        'key_size': args.key_size,
+        'md_alg': args.md_alg,
+    }
+
+    cert_opts = {
+        'common_name': args.common_name,
+        'days': args.days,
+        'entity_id': args.entity_id,
+        'locality_name': args.locality_name,
+        'org_id': args.org_id,
+        'org_name': args.org_name,
+        'sector': args.sector,
+    }
+
     try:
-        generate(args)
+        generate(cert_opts, crypto_opts)
     except Exception as e:
         LOG.error(e)
         sys.exit(1)
