@@ -168,81 +168,15 @@ def _extensions(cert_opts: Dict) -> List[Tuple[bool, x509.Extension]]:
 
 
 def gen_csr(key: rsa.RSAPrivateKey, cert_opts: Dict, crypto_opts: Dict) -> None:  # noqa
-    sector = cert_opts['sector']
-
-    # certificate policies
-    policies = [
-        x509.PolicyInformation(
-            x509.ObjectIdentifier('1.3.76.16'), [
-                x509.UserNotice(None, 'AgIDroot')
-            ]
-        )
-    ]
-    if sector == 'private':
-        policies.append(
-            x509.PolicyInformation(
-                x509.ObjectIdentifier('1.3.76.16.4.3.1'), [
-                    x509.UserNotice(None, 'cert_SP_Priv')
-                ]
-            )
-        )
-    elif sector == 'public':
-        policies.append(
-            x509.PolicyInformation(
-                x509.ObjectIdentifier('1.3.76.16.4.2.1'), [
-                    x509.UserNotice(None, 'cert_SP_Pub')
-                ]
-            )
-        )
-    else:
-        emsg = 'Invalid value for sector (%s)' % sector
-        raise Exception(emsg)
-
-    # init csr builder
+    # init builder
     builder = x509.CertificateSigningRequestBuilder()
 
-    # compose subject name
-    common_name = cert_opts['common_name']
-    entity_id = cert_opts['entity_id']
-    locality_name = cert_opts['locality_name']
-    org_id = cert_opts['org_id']
-    org_name = cert_opts['org_name']
-    builder = builder.subject_name(x509.Name([
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, org_name),
-        x509.NameAttribute(NameOID.COMMON_NAME, common_name),
-        # uri
-        x509.NameAttribute(x509.ObjectIdentifier('2.5.4.83'), entity_id),
-        # organizationIdentifier
-        x509.NameAttribute(x509.ObjectIdentifier('2.5.4.97'), org_id),
-        x509.NameAttribute(NameOID.COUNTRY_NAME, 'IT'),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, locality_name),
-    ]))
+    # set subject
+    builder = builder.subject_name(_subject(cert_opts))
 
     # add extensions
-    builder = builder.add_extension(
-        x509.BasicConstraints(ca=False, path_length=None),
-        critical=False
-    )
-
-    builder = builder.add_extension(
-        x509.KeyUsage(
-            digital_signature=True,
-            content_commitment=True,
-            key_encipherment=False,
-            data_encipherment=False,
-            key_agreement=False,
-            key_cert_sign=False,
-            crl_sign=False,
-            encipher_only=False,
-            decipher_only=False,
-        ),
-        critical=True
-    )
-
-    builder = builder.add_extension(
-        x509.CertificatePolicies(policies),
-        critical=False
-    )
+    for is_critical, ext in _extensions(cert_opts):
+        builder = builder.add_extension(ext, critical=is_critical)
 
     # sign the csr
     md_alg = MD_ALGS[crypto_opts['md_alg']]
