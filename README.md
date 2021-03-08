@@ -92,11 +92,17 @@ implementation from Agenzia per l'Italia Digitale.
 
 ## Validate generated certificate (with Docker)
 
-  if you want to check the generated certificate file (default: `generated-certs/crt.pem`)
-  you need only to launch the script `validate-crt-with-docker.sh` and check the output in the console.
+  if you want to check the generated certificate file (default: `./generated-certs/crt.pem`)
+  you need only to launch the script `validate-crt-with-docker.sh` and check the output in the console:
 
-  if you want to change the certificate file to validate, just change the env variable `CERT_FILE` inside
-  `validate-crt-with-docker.sh` and launch the script.
+        $ chmod +x validate-crt-with-docker.sh
+        $ ./validate-crt-with-docker.sh
+
+  if you want to change the certificate file to validate, just put the full path to the file
+  in the env variable `CERT_FILE` and launch the script:
+
+        $ chmod +x validate-crt-with-docker.sh
+        $ CERT_FILE=/abs/path/to/my/file.pem ./validate-crt-with-docker.sh
 
   NOTE: the first execution takes some time, because the docker image needs to compile
   the python package `cryptography` from source; after that, every other execution is immediate.

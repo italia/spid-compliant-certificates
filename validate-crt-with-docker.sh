@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CERT_FILE="`pwd`/generated-certs/crt.pem"
+CERT_FILE=${CERT_FILE:="$(pwd)/generated-certs/crt.pem"}
 CERT_FILE_MOUNT_POINT="/run/spid-complaint-certificates-validator/crt.pem"
 
 set -e
