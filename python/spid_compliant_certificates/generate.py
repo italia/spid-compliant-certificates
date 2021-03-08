@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 import logging
-import os
+import pathlib
 import re
 
 from cryptography import x509
@@ -70,10 +70,10 @@ def validate_arguments(args):
         raise Exception(emsg)
 
 
-def gen_private_key(key_size: int, outfile: str) -> rsa.RSAPrivateKey:
+def gen_private_key(key_size: int, key_out: pathlib.PosixPath) -> rsa.RSAPrivateKey:  # noqa
     # check if the private key file already exists
-    if os.path.exists(outfile):
-        emsg = 'File %s already exists' % outfile
+    if key_out.exists():
+        emsg = 'File %s already exists' % key_out
         raise Exception(emsg)
 
     # generate private key
@@ -83,7 +83,7 @@ def gen_private_key(key_size: int, outfile: str) -> rsa.RSAPrivateKey:
     )
 
     # write to file
-    with open(outfile, "wb") as fp:
+    with open(key_out, "wb") as fp:
         fp.write(key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -178,7 +178,7 @@ def generate(args):
     validate_arguments(args)
 
     # generate private key
-    key = gen_private_key(args.key_size, str(args.key_out))
+    key = gen_private_key(args.key_size, args.key_out)
     LOG.info('Private key saved to %s' % args.key_out)
     LOG.info('  Inspect with OpenSSL: openssl rsa -in %s -noout -text'
              % args.key_out)
