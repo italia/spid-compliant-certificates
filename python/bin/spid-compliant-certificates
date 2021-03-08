@@ -26,7 +26,7 @@ import pathlib
 import re
 import sys
 
-from spid_compliant_certificates import generate
+from spid_compliant_certificates.generator import generate
 
 # logging
 formatter = logging.Formatter('[%(levelname)1.1s] %(message)s')  # noqa
