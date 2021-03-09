@@ -124,7 +124,12 @@ def _extensions(cert_opts: Dict) -> List[Tuple[bool, x509.Extension]]:
             x509.ObjectIdentifier('1.3.76.16'), [
                 x509.UserNotice(None, 'AgIDroot')
             ]
-        )
+        ),
+        x509.PolicyInformation(
+            x509.ObjectIdentifier('1.3.76.16.6'), [
+                x509.UserNotice(None, 'agIDcert')
+            ]
+        ),
     ]
     if sector == 'private':
         policies.append(
