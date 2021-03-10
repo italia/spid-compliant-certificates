@@ -36,3 +36,9 @@ private: install cleanup
 		--org-id "VATIT-12345678901" \
 		--org-name "Agenzia per l'Italia Digitale" \
 		--sector private
+
+validate-public:
+	spid-compliant-certificates validator
+
+validate-private:
+	spid-compliant-certificates validator --sector private

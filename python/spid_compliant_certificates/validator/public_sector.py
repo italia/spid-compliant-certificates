@@ -18,7 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .private_sector import TestPrivateSector  # noqa
-from .public_sector import TestPublicSector  # noqa
+from .base import TestBase
 
-_all_ = ['TestPrivateSector', 'TestPublicSector']
+
+class TestPublicSector(TestBase):
+    sector = 'public'
