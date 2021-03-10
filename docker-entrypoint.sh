@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Copyright 2020 Paolo Smiraglia <paolo.smiraglia@gmail.com>
 #
@@ -38,7 +38,7 @@ case ${SPID_SECTOR} in
         gencert-private
         ;;
     *)
-    echo "[E] SPID_SECTOR must be one of ['public', 'private']"
+    echo "[E] SPID_SECTOR must be one of ['public', 'private'] but it's set to '${SPID_SECTOR}'"
     exit 1
         ;;
 esac

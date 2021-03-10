@@ -18,22 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM alpine:latest
+FROM python:alpine3.13
 LABEL maintainer="Paolo Smiraglia <paolo.smiraglia@gmail.com>"
+
+RUN pip install -U pip
 
 RUN apk update \
     && apk add --no-cache \
-        curl \
-        grep \
-        openssl
+        gcc \
+        cargo \
+        libffi-dev \
+        musl-dev \
+        openssl-dev \
+        python3-dev
 
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-COPY gencert-private.sh /usr/local/bin/gencert-private
-COPY gencert-public.sh /usr/local/bin/gencert-public
-RUN chmod +x \
-    /usr/local/bin/docker-entrypoint \
-    /usr/local/bin/gencert-private \
-    /usr/local/bin/gencert-public
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
+WORKDIR /run/spid-complaint-certificates-validator/
 
-WORKDIR /output
+COPY ./requirements.txt ./requirements.txt
+COPY ./validator.py ./validator.py
+
+RUN pip install -r requirements.txt
+
+ENTRYPOINT ["/usr/local/bin/python3", "validator.py"]
+CMD []
