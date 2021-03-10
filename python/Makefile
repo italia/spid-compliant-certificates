@@ -22,7 +22,7 @@ public: install cleanup
 		--days 365 \
 		--entity-id https://spid.agid.gov.it \
 		--locality-name Roma \
-		--org-id "PA:IT-12345678901" \
+		--org-id "PA:IT-c_h501" \
 		--org-name "Agenzia per l'Italia Digitale" \
 		--sector public
 

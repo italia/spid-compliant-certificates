@@ -24,6 +24,7 @@ import pathlib
 import re
 from typing import Dict, List, Tuple
 
+import requests
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -55,11 +56,24 @@ def _validate_private_arguments(cert_opts: Dict) -> None:
 
 def _validate_public_arguments(cert_opts: Dict) -> None:
     # validate organizationIdentifier
-    pattern = r'^PA:IT-\d{11}$'
+    pattern = r'^PA:IT-\S{1,11}$'
     org_id = cert_opts['org_id']
     if not re.match(pattern, org_id):
         emsg = ('Invalid value for organization identifier (%s)' % org_id)
         raise ValueError(emsg)
+
+    # check if the ipa code is valid
+    ipa_code = org_id[6:]
+    base_url = 'https://AAAindicepa.gov.it/ricerca/n-dettaglioamministrazione.php'  # noqa
+
+    r = requests.get(base_url, params={'cod_amm': ipa_code}, timeout=10)
+
+    if ipa_code not in r.text:
+        emsg = [
+            'The IPA code (%s) refers to something that does not exist.' % ipa_code,  # noqa
+            'Check it by yourself at %s' % r.url
+        ]
+        raise ValueError(' '.join(emsg))
 
 
 def validate_arguments(cert_opts: Dict) -> None:
