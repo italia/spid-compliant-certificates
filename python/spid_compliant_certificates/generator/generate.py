@@ -64,7 +64,7 @@ def _validate_public_arguments(cert_opts: Dict) -> None:
 
     # check if the ipa code is valid
     ipa_code = org_id[6:]
-    base_url = 'https://AAAindicepa.gov.it/ricerca/n-dettaglioamministrazione.php'  # noqa
+    base_url = 'https://indicepa.gov.it/ricerca/n-dettaglioamministrazione.php'  # noqa
 
     r = requests.get(base_url, params={'cod_amm': ipa_code}, timeout=10)
 
