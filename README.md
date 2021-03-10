@@ -6,7 +6,7 @@ The repository contains a solution to create X.509 certificates according to
 **NOTE:** The solution is provided "AS-IS" and does not represent an official
 implementation from Agenzia per l'Italia Digitale.
 
-## Private key, CSR and Self-signed certificate for public sector (with Docker)
+## Private key, CSR and self-signed certificate for public sector (with Docker)
 
 1.  Create and edit the `docker.env` file according to your needs
     (see [Configuration parameters](#configuration-parameters))
@@ -19,7 +19,8 @@ implementation from Agenzia per l'Italia Digitale.
         $ chmod +x gencert-with-docker.sh
         $ ./gencert-with-docker.sh
 
-3.  Enjoy with your new private key and self-signed certificate
+3.  Enjoy with your new private key (`key.pem`) and self-signed certificate
+    (`crt.pem`)
 
         $ ls ./generated-certs/
         crt.pem  csr.pem  key.pem
@@ -27,7 +28,7 @@ implementation from Agenzia per l'Italia Digitale.
     NOTE: This generates also a certificate signing request (`csr.pem`)
     that can be submitted to AgID in order to obtain a signed certificate.
 
-## Private key, CSR and Self-signed certificate for public sector
+## Private key, CSR and self-signed certificate for public sector
 
 1.  Run the following commands to configure the environment according to your
     needs (see [Configuration parameters](#configuration-parameters))
@@ -44,9 +45,11 @@ implementation from Agenzia per l'Italia Digitale.
         EOF
         $ chmod +x myenv.sh && source myenv.sh
 
-2.  Generate the private key (`key.pem`), the self-signed certificate (`crt.pem`)
-    and the certificate signing request (`csr.pem`) with the following command
+2.  Generate the private key (`key.pem`), the self-signed certificate
+    (`crt.pem`) and the certificate signing request (`csr.pem`) with the
+    following command
 
+        $ chmod +x gencert-public.sh
         $ ./gencert-public.sh
 
     The output produced by the script (see the ASN.1 dumps) allows to check
@@ -62,9 +65,10 @@ implementation from Agenzia per l'Italia Digitale.
 
 2.  Run the script `gencert-with-docker.sh`
 
+        $ chmod +x gencert-with-docker.sh
         $ ./gencert-with-docker.sh
 
-3.  Enjoy with your new private key and CSR
+3.  Enjoy with your new private key (`key.pem`) and CSR (`csr.pem`)
 
         $ ls ./generated-certs/
         csr.pem  key.pem
@@ -88,24 +92,52 @@ implementation from Agenzia per l'Italia Digitale.
 2.  Generate the private key (`key.pem`) and the certificate signing request
     (`csr.pem`) with the following command
 
+        $ chmod +x gencert-private.sh
         $ ./gencert-private.sh
 
-## Validate generated certificate (with Docker)
+## Validate the certificate
 
-  if you want to check the generated certificate file (default: `./generated-certs/crt.pem`)
-  you need only to launch the script `validate-crt-with-docker.sh` and check the output in the console:
+The following steps can be followed to verify the compliancy of certificates
+generated with the tools in this repository and certificates generated/obtained
+from third parties.
 
-        $ chmod +x validate-crt-with-docker.sh
-        $ ./validate-crt-with-docker.sh
+### With Docker
 
-  if you want to change the certificate file to validate, just put the full path to the file
-  in the env variable `CERT_FILE` and launch the script:
+Run the script `validate-crt-with-docker.sh`
 
-        $ chmod +x validate-crt-with-docker.sh
-        $ CERT_FILE=/abs/path/to/my/file.pem ./validate-crt-with-docker.sh
+    $ chmod +x validate-crt-with-docker.sh
+    $ ./validate-crt-with-docker.sh
 
-  NOTE: the first execution takes some time, because the docker image needs to compile
-  the python package `cryptography` from source; after that, every other execution is immediate.
+By default, it will validate the certificate at
+
+    generated-certs/crt.pem
+
+Such a default path can be modified by setting the `CERT_FILE` envvar
+
+    $ chmod +x validate-crt-with-docker.sh
+    $ CERT_FILE=/path/to/your/crt.pem ./validate-crt-with-docker.sh
+
+NOTE: The first script execution could take some time, because the Docker
+image needs to be built. Following execution will be immediate.
+
+### With command line
+
+Install the required Python packages
+
+    $ cd validator
+    $ pip install -r requirements.txt
+
+Run the Python tests suite
+
+    $ ./validator.py
+
+By default, it will validate the certificate at
+
+    ./crt.pem
+
+Such a default path can be modified by setting the `CERT_FILE` envvar
+
+    $ CERT_FILE=/path/to/your/crt.pem ./validator.py
 
 ## Configuration parameters
 
@@ -114,18 +146,36 @@ environment variable.
 
 ### Commons
 
-*   `COMMON_NAME`: short name of the service provider (example: `AgID`, default: `""`)
-*   `ENTITY_ID`: value of the `entityID` attribute in `<EntityDescriptor>` element (default: `""`)
-*   `KEY_LEN`: length of the private key (default: `"2048"`)
-*   `LOCALITY_NAME`: extended name of the locality (example: `Roma`, default: `""`)
-*   `MD_ALG`: digest algorithm to be used (default: `"sha256"`)
-*   `ORGANIZATION_NAME`: extended name of the service provider (example: `Agenzia per l'Italia Digitale`, default: `""`)
+*   `COMMON_NAME`: short name of the service provider
+    (example: `AgID`, default: `""`)
+
+*   `ENTITY_ID`: value of the `entityID` attribute in `<EntityDescriptor>`
+    element
+    (example: `https://spid.agid.gov.it`, default: `""`)
+
+*   `KEY_LEN`: length of the private key
+    (allowd values: `[2048, 3072, 4096]`, default: `2048`)
+
+*   `LOCALITY_NAME`: extended name of the locality
+    (example: `Roma`, default: `""`)
+
+*   `MD_ALG`: digest algorithm to be used
+    (allowed values: `[sha256, sha512], `default: `sha256`)
+
+*   `ORGANIZATION_NAME`: extended name of the service provider
+    (example: `Agenzia per l'Italia Digitale`, default: `""`)
 
 ### Public sector specific
 
-*   `DAYS`: validity of the self-signed certificate (default: `730`)
-*   `ORGANIZATION_IDENTIFIER`: service provider identifier in the form of `PA:IT-<IPA Code>` (example: `PA:IT-c_h501`, default: `""`)
+*   `DAYS`: validity of the self-signed certificate
+    (example: `3650`, default: `730`)
+
+*   `ORGANIZATION_IDENTIFIER`: service provider identifier in the form of
+    `PA:IT-<IPA Code>`
+    (example: `PA:IT-c_h501`, default: `""`)
 
 ### Private sector specific
 
-*   `ORGANIZATION_IDENTIFIER`: service provider identifier in the form of `VATIT-<partita iva>` or `CF:IT-<codice fiscale>` (default: `""`)
+*   `ORGANIZATION_IDENTIFIER`: service provider identifier in the form of
+    `VATIT-<partita iva>` or `CF:IT-<codice fiscale>`
+    (example: `VATIT-12345678901`, default: `""`)
