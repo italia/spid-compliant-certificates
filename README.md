@@ -115,7 +115,7 @@ By default, it will validate the certificate at
 Such a default path can be modified by setting the `CERT_FILE` envvar
 
     $ chmod +x validate-crt-with-docker.sh
-    $ CERT_FILE=/path/to/your/crt.pem ./validate-crt-with-docker.sh
+    $ CERT_FILE=/absolute/path/to/your/crt.pem ./validate-crt-with-docker.sh
 
 NOTE: The first script execution could take some time, because the Docker
 image needs to be built. Following execution will be immediate.
