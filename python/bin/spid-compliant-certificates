@@ -25,6 +25,7 @@ import logging
 import pathlib
 import re
 import sys
+from operator import attrgetter
 
 from spid_compliant_certificates.generator import generate
 
@@ -38,23 +39,45 @@ LOG.setLevel(logging.DEBUG)
 LOG.addHandler(sh)
 
 
+# argparse helpers
+
+class SortingHelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
+    def add_arguments(self, actions):
+        actions = sorted(actions, key=attrgetter('option_strings'))
+        super(SortingHelpFormatter, self).add_arguments(actions)
+
+
 def not_empty_string(value):
     if not re.match(r'^\S(.*\S)?$', value):
         emsg = 'Format "%s" is not accepted' % value
         raise argparse.ArgumentTypeError(emsg)
     return value
 
+# main
+
 
 if __name__ == '__main__':
-    p = argparse.ArgumentParser(
-        description='aaa',
+
+    # create the top-level parser
+    parser = argparse.ArgumentParser(
+        description=('Tool to generate/validate x509 certificates '
+                     + 'according to Avviso SPID n.29 v3'),
         epilog=('NOTE: The solution is provided "AS-IS" '
                 + 'and does not represent an official implementation '
                 + 'from Agenzia per l\'Italia Digitale.'),
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=SortingHelpFormatter
     )
 
-    p.add_argument(
+    subparsers = parser.add_subparsers(dest='mode')
+
+    # create the parser for the "generator" mode
+    parser_g = subparsers.add_parser(
+        'generator',
+        help='execute the script in x509 generator mode',
+        formatter_class=SortingHelpFormatter
+    )
+
+    parser_g.add_argument(
         '--sector',
         action='store',
         choices=['private', 'public'],
@@ -62,7 +85,7 @@ if __name__ == '__main__':
         help='select the specifications to be followed'
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--md-alg',
         action='store',
         choices=['sha256', 'sha512'],
@@ -70,7 +93,7 @@ if __name__ == '__main__':
         help='digest algorithm',
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--key-size',
         action='store',
         choices=[2048, 3072, 4096],
@@ -79,7 +102,7 @@ if __name__ == '__main__':
         type=int
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--key-out',
         action='store',
         default='key.pem',
@@ -87,7 +110,7 @@ if __name__ == '__main__':
         type=pathlib.Path
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--csr-out',
         action='store',
         default='csr.pem',
@@ -95,7 +118,7 @@ if __name__ == '__main__':
         type=pathlib.Path
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--crt-out',
         action='store',
         default='crt.pem',
@@ -103,72 +126,102 @@ if __name__ == '__main__':
         type=pathlib.Path
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--common-name',
         action='store',
         required=True,
         type=not_empty_string
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--days',
         action='store',
         required=True,
         type=int
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--entity-id',
         action='store',
         required=True,
         type=not_empty_string
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--locality-name',
         action='store',
         required=True,
         type=not_empty_string
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--org-id',
         action='store',
         required=True,
         type=not_empty_string
     )
 
-    p.add_argument(
+    parser_g.add_argument(
         '--org-name',
         action='store',
         required=True,
         type=not_empty_string
     )
 
-    args = p.parse_args()
+    # create the parser for the "validator" mode
+    parser_v = subparsers.add_parser(
+        'validator',
+        help='execute the script in x509 validator mode',
+        formatter_class=SortingHelpFormatter
+    )
 
-    crypto_opts = {
-        'crt_out': args.crt_out,
-        'csr_out': args.csr_out,
-        'key_out': args.key_out,
-        'key_size': args.key_size,
-        'md_alg': args.md_alg,
-    }
+    parser_v.add_argument(
+        '--sector',
+        action='store',
+        choices=['private', 'public'],
+        default='public',
+        help='select the specifications to be followed'
+    )
 
-    cert_opts = {
-        'common_name': args.common_name,
-        'days': args.days,
-        'entity_id': args.entity_id,
-        'locality_name': args.locality_name,
-        'org_id': args.org_id,
-        'org_name': args.org_name,
-        'sector': args.sector,
-    }
+    parser_v.add_argument(
+        '--crt-file',
+        action='store',
+        default='crt.pem',
+        help='path where the certificate is stored',
+        type=pathlib.Path
+    )
 
-    try:
-        generate(cert_opts, crypto_opts)
-    except Exception as e:
-        LOG.error(e)
+    args = parser.parse_args()
+
+    if args.mode == 'generator':
+        crypto_opts = {
+            'crt_out': args.crt_out,
+            'csr_out': args.csr_out,
+            'key_out': args.key_out,
+            'key_size': args.key_size,
+            'md_alg': args.md_alg,
+        }
+
+        cert_opts = {
+            'common_name': args.common_name,
+            'days': args.days,
+            'entity_id': args.entity_id,
+            'locality_name': args.locality_name,
+            'org_id': args.org_id,
+            'org_name': args.org_name,
+            'sector': args.sector,
+        }
+
+        try:
+            generate(cert_opts, crypto_opts)
+        except Exception as e:
+            LOG.error(e)
+            sys.exit(1)
+    elif args.mode == 'validator':
+        LOG.info('Validating certificate at %s' % args.crt_file)
+        LOG.info('Coming soon...')
+    else:
+        LOG.error('Invalid mode (%s)' % args.mode)
         sys.exit(1)
 
     sys.exit(0)

@@ -16,7 +16,7 @@ install:
 	pip install .
 
 public: install cleanup
-	spid-compliant-certificates \
+	spid-compliant-certificates generator\
 		--key-size 3072 \
 		--common-name "AgID" \
 		--days 365 \
@@ -27,7 +27,7 @@ public: install cleanup
 		--sector public
 
 private: install cleanup
-	spid-compliant-certificates \
+	spid-compliant-certificates generator \
 		--key-size 3072 \
 		--common-name "AgID" \
 		--days 365 \
