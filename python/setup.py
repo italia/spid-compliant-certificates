@@ -22,6 +22,20 @@ SOFTWARE.
 
 from setuptools import find_packages, setup
 
+
+def get_requirements():
+    requirements = []
+    with open('requirements.txt', 'r') as fp:
+        requirements = [line[:-1] for line in fp.readlines()]
+        fp.close()
+
+    if not requirements:
+        emsg = 'Unable to obtain requirements list'
+        raise Exception(emsg)
+
+    return requirements
+
+
 setup(
     name='spid_compliant_certificates',
     version='0.1.0',
@@ -33,8 +47,6 @@ setup(
     url='https://github.com/italia/spid-compliant-certificates',
 
     packages=find_packages(exclude=['bin']),
-    install_requires=[
-        'cryptography==3.4.6'
-    ],
+    install_requires=get_requirements(),
     scripts=['bin/spid-compliant-certificates'],
 )
