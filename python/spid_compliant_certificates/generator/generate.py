@@ -129,7 +129,7 @@ def _subject(cert_opts: Dict) -> x509.Name:
     ])
 
 
-def _extensions(cert_opts: Dict) -> List[Tuple[bool, x509.Extension]]:
+def _extensions(key: rsa.RSAPrivateKey, cert_opts: Dict) -> List[Tuple[bool, x509.Extension]]:  # noqa
     sector = cert_opts['sector']
 
     # certificate policies
@@ -182,7 +182,9 @@ def _extensions(cert_opts: Dict) -> List[Tuple[bool, x509.Extension]]:
             decipher_only=False,
         )),
         # certifcatePolicies
-        (False, x509.CertificatePolicies(policies))
+        (False, x509.CertificatePolicies(policies)),
+        # subjectKeyIdentifier
+        (False, x509.SubjectKeyIdentifier.from_public_key(key.public_key())),
     ]
 
 
@@ -194,7 +196,7 @@ def gen_csr(key: rsa.RSAPrivateKey, cert_opts: Dict, crypto_opts: Dict) -> None:
     builder = builder.subject_name(_subject(cert_opts))
 
     # add extensions
-    for is_critical, ext in _extensions(cert_opts):
+    for is_critical, ext in _extensions(key, cert_opts):
         builder = builder.add_extension(ext, critical=is_critical)
 
     # sign the csr
@@ -231,9 +233,17 @@ def gen_self_signed(key: rsa.RSAPrivateKey, cert_opts: Dict, crypto_opts: Dict) 
     builder = builder.not_valid_before(now)
     builder = builder.not_valid_after(now + datetime.timedelta(days=days))
 
-    # add extensions
-    for is_critical, ext in _extensions(cert_opts):
+    # add base extensions
+    for is_critical, ext in _extensions(key, cert_opts):
         builder = builder.add_extension(ext, critical=is_critical)
+
+    # add AuthorityKeyIdentifier extension (experimental feature)
+    builder = builder.add_extension(
+        x509.AuthorityKeyIdentifier.from_issuer_public_key(
+            key.public_key()
+        ),
+        critical=False
+    )
 
     # sign the certificate
     md_alg = MD_ALGS[crypto_opts['md_alg']]
