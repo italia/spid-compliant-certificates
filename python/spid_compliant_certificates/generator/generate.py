@@ -225,7 +225,8 @@ def gen_self_signed(key: rsa.RSAPrivateKey, cert_opts: Dict, crypto_opts: Dict) 
     builder = builder.public_key(key.public_key())
 
     # set serial number
-    builder = builder.serial_number(x509.random_serial_number())
+    serial = x509.random_serial_number()
+    builder = builder.serial_number(serial)
 
     # set expiration
     now = datetime.datetime.utcnow()
@@ -238,9 +239,14 @@ def gen_self_signed(key: rsa.RSAPrivateKey, cert_opts: Dict, crypto_opts: Dict) 
         builder = builder.add_extension(ext, critical=is_critical)
 
     # add AuthorityKeyIdentifier extension (experimental feature)
+    pkey = key.public_key()
+    key_identifier = x509.extensions._key_identifier_from_public_key(pkey)
+    authority_cert_issuer = [x509.DirectoryName(issuer)]
     builder = builder.add_extension(
-        x509.AuthorityKeyIdentifier.from_issuer_public_key(
-            key.public_key()
+        x509.AuthorityKeyIdentifier(
+            key_identifier,
+            authority_cert_issuer,
+            serial
         ),
         critical=False
     )
