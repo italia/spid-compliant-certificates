@@ -185,7 +185,7 @@ EOF
 oids_conf=$(mktemp)
 cat > ${oids_conf} <<EOF
 1.3.76.16.6 agIDcert agIDcert
-1.3.76.16.4.2.1 spid-publicsector-SP cert_SP_Pub
+1.3.76.16.4.2.1 spid-publicsector-SP spid-publicsector-SP
 2.5.4.83 uri uri
 ${ORGID_LABEL}
 EOF

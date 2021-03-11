@@ -163,7 +163,7 @@ EOF
 oids_conf=oids.conf
 cat > ${oids_conf} <<EOF
 1.3.76.16.6 agIDcert agIDcert
-1.3.76.16.4.3.1 spid-privatesector-SP cert_SP_Priv
+1.3.76.16.4.3.1 spid-privatesector-SP spid-privatesector-SP
 2.5.4.83 uri uri
 ${ORGID_LABEL}
 EOF
