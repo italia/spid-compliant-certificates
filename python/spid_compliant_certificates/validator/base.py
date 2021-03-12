@@ -26,6 +26,23 @@ from typing import Tuple
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
+from iso3166 import Country, countries
+
+
+class CustomObjectIdentifier(x509.ObjectIdentifier):
+    def __init__(self, dotted_string: str, name: str) -> None:
+        super(CustomObjectIdentifier, self).__init__(dotted_string)
+        self.name = name
+
+    @property
+    def _name(self) -> str:
+        return self.name
+
+
+OID_INITIALS = CustomObjectIdentifier('2.5.4.43', 'initials')
+OID_NAME = CustomObjectIdentifier('2.5.4.41', 'name')
+OID_ORGANIZATION_IDENTIFIER = CustomObjectIdentifier('2.5.4.97', 'organizationIdentifier')  # noqa
+OID_URI = CustomObjectIdentifier('2.5.4.83', 'uri')
 
 
 def pem_to_der(cert_file: str) -> Tuple[bytes, str]:
@@ -52,112 +69,6 @@ def pem_to_der(cert_file: str) -> Tuple[bytes, str]:
     return der, None
 
 
-def key_usage_is_ok(e: x509.Extension) -> bool:
-    is_ok = False
-
-    # check if extension is critical
-    if not e.critical:
-        return is_ok
-
-    # check the requested key usage
-    for usage in ['content_commitment',
-                  'digital_signature']:
-        if not getattr(e.value, usage):
-            # requested usage is not present
-            return is_ok
-
-    # check the not requested key usage
-    try:
-        for usage in ['crl_sign',
-                      'data_encipherment',
-                      'decipher_only',
-                      'encipher_only',
-                      'key_agreement',
-                      'key_cert_sign',
-                      'key_encipherment']:
-            if getattr(e.value, usage):
-                # not requested usage is present
-                return is_ok
-    except Exception:
-        pass
-
-    # the extension is ok
-    is_ok = True
-    return is_ok
-
-
-def basic_constraints_is_ok(e: x509.Extension) -> bool:
-    is_ok = False
-
-    # check if extension is not critical
-    if e.critical:
-        return is_ok
-
-    # check if CA is FALSE
-    if e.value.ca:
-        return is_ok
-
-    # the extension is ok
-    is_ok = True
-    return is_ok
-
-
-def certificate_policies_is_ok(e: x509.Extension, sector: str) -> Tuple[bool, str]:  # noqa
-    is_ok = False
-
-    # check if extension is not critical
-    if e.critical:
-        msg = 'Extension with OID %s can\'t be critical' % e.oid.dotted_string
-        return is_ok, msg
-
-    # check policies
-    mandatory_policies = ['1.3.76.16']
-    if sector == 'public':
-        mandatory_policies.append('1.3.76.16.4.2.1')
-    elif sector == 'private':
-        mandatory_policies.append('1.3.76.16.4.3.1')
-    else:
-        pass
-
-    policies = e.value
-    cert_policies = [p.policy_identifier.dotted_string for p in policies]
-
-    for p in mandatory_policies:
-        if p not in cert_policies:
-            msg = 'Policy %s is missing' % p
-            return is_ok, msg
-
-    for p in policies:
-        if p.policy_identifier.dotted_string == '1.3.76.16':
-            for q in p.policy_qualifiers:
-                if isinstance(q, x509.extensions.UserNotice):
-                    if q.explicit_text != 'AgIDroot':
-                        msg = ('UserNotice.ExplicitText for policy %s is not valid (%s)'  # noqa
-                               % (p.policy_identifier.dotted_string, q.explicit_text))  # noqa
-                        return is_ok, msg
-        elif p.policy_identifier.dotted_string == '1.3.76.16.4.2.1':
-            for q in p.policy_qualifiers:
-                if isinstance(q, x509.extensions.UserNotice):
-                    if q.explicit_text != 'cert_SP_Pub':
-                        msg = ('UserNotice.ExplicitText for policy %s is not valid (%s)'  # noqa
-                               % (p.policy_identifier.dotted_string, q.explicit_text))  # noqa
-                        return is_ok, msg
-        elif p.policy_identifier.dotted_string == '1.3.76.16.4.3.1':
-            for q in p.policy_qualifiers:
-                if isinstance(q, x509.extensions.UserNotice):
-                    if q.explicit_text != 'cert_SP_Priv':
-                        msg = ('UserNotice.ExplicitText for policy %s is not valid (%s)'  # noqa
-                               % (p.policy_identifier.dotted_string, q.explicit_text))  # noqa
-                        return is_ok, msg
-
-        else:
-            pass
-
-    # the extension is ok
-    is_ok = True
-    return is_ok, None
-
-
 class TestBase(unittest.TestCase):
     sector = None
 
@@ -170,90 +81,215 @@ class TestBase(unittest.TestCase):
 
     def test_key_type_and_size(self):
         pk = self.cert.public_key()
-        self.assertTrue(isinstance(pk, rsa.RSAPublicKey))
-        self.assertGreaterEqual(pk.key_size, 2048)
+
+        # check the keypair type
+        exp_pk_type = 'RSA'
+        pk_type = 'RSA' if isinstance(pk, rsa.RSAPublicKey) else 'NOT ALLOWED'
+        msg = 'The keypair must be %s' % exp_pk_type
+        self.assertEqual(pk_type, exp_pk_type, msg=msg)
+
+        # check the key size
+        min_size = 2048
+        allowed_sizes = [2048, 3072, 4096]
+        size = pk.key_size
+
+        msg = ('The key size must be greater than or equal to %d (now: %d)'
+               % (min_size, size))
+        self.assertGreaterEqual(size, min_size)
+
+        msg = ('The key size must be one of %s (now: %d)'
+               % (allowed_sizes, size))
+        self.assertIn(size, allowed_sizes, msg=msg)
 
     def test_digest_algorithm(self):
-        allowed_algs = [hashes.SHA256, hashes.SHA384, hashes.SHA512]
-        alg_is_ok = False
+        allowed_algs = [hashes.SHA256.name, hashes.SHA512.name]
+        alg = self.cert.signature_hash_algorithm.name
 
-        _alg = self.cert.signature_hash_algorithm
-        for alg in allowed_algs:
-            if isinstance(_alg, alg):
-                alg_is_ok = True
+        msg = ('The digest algorithm must be one of %s (now: %s)'
+               % (allowed_algs, alg))
+        self.assertIn(alg, allowed_algs, msg=msg)
 
-        self.assertTrue(alg_is_ok)
+    def test_basic_constraints(self):
+        extensions = self.cert.extensions
 
-    def test_extensions(self):
-        mandatory_exts = [
-            '2.5.29.15',  # keyUsage
-            '2.5.29.19',  # basicConstraints
-            '2.5.29.32',  # certificatePolicies
+        # basicConstraints: CA:FALSE
+        ext_cls = x509.BasicConstraints
+        ext_name = ext_cls.oid._name
+
+        try:
+            ext = extensions.get_extension_for_class(ext_cls)
+
+            msg = '%s: can not be set as critical' % ext_name
+            self.assertFalse(ext.critical, msg=msg)
+
+            msg = '%s: CA must be FALSE' % ext_name
+            self.assertFalse(ext.value.ca, msg=msg)
+        except x509.ExtensionNotFound:
+            self.fail('%s must be present' % ext_name)
+
+    def test_key_usage(self):
+        extensions = self.cert.extensions
+
+        # keyUsage: critical;nonRepudiation
+        ext_cls = x509.KeyUsage
+        ext_name = ext_cls.oid._name
+
+        try:
+            ext = extensions.get_extension_for_class(ext_cls)
+
+            msg = '%s: must be set as critical' % ext_name
+            self.assertTrue(ext.critical, msg=msg)
+
+            for usage in ['content_commitment', 'digital_signature']:
+                msg = '%s: %s must be set' % (ext_name, usage)
+                self.assertTrue(getattr(ext.value, usage), msg=msg)
+
+            for usage in ['crl_sign', 'data_encipherment', 'decipher_only',
+                          'encipher_only', 'key_agreement', 'key_cert_sign',
+                          'key_encipherment']:
+                msg = '%s: %s must be unset' % (ext_name, usage)
+                self.assertFalse(getattr(ext.value, usage), msg=msg)
+        except x509.ExtensionNotFound:
+            self.fail('%s must be present' % ext_name)
+        except Exception:
+            pass
+
+    def test_certificate_policies(self):
+        extensions = self.cert.extensions
+
+        # certificatePolicies: agIDcert(agIDcert)
+        ext_cls = x509.CertificatePolicies
+        ext_name = ext_cls.oid._name
+
+        # expected policies
+        exp_policies = [
+            '1.3.76.16.6'  # agIDCert
         ]
 
-        extensions = self.cert.extensions
-        cert_exts = [ext.oid.dotted_string for ext in extensions]
+        if self.sector == 'private':
+            exp_policies.append('1.3.76.16.4.3.1')  # spid-private-sp
 
-        # check if all the mandatory extensions are present
-        for ext in mandatory_exts:
-            self.assertIn(ext, cert_exts)
+        if self.sector == 'public':
+            exp_policies.append('1.3.76.16.4.2.1')  # spid-public-sp
 
-        # check the extensions content
-        for ext in extensions:
-            if ext.oid.dotted_string == '2.5.29.15':
-                self.assertTrue(key_usage_is_ok(ext))
-            elif ext.oid.dotted_string == '2.5.29.19':
-                self.assertTrue(basic_constraints_is_ok(ext))
-            if ext.oid.dotted_string == '2.5.29.32':
-                res, msg = certificate_policies_is_ok(ext, self.sector)
-                self.assertTrue(res, msg=msg)
-            else:
-                pass
+        try:
+            ext = extensions.get_extension_for_class(ext_cls)
+
+            # check if critical
+            msg = '%s: can nont be set as critical' % ext_name
+            self.assertFalse(ext.critical, msg=msg)
+
+            # check if expected policies are present
+            policies = ext.value
+            for ep in exp_policies:
+                is_present = any(
+                    p.policy_identifier.dotted_string == ep for p in policies
+                )
+                msg = '%s: policy %s must be present' % (ext_name, ep)
+                self.assertTrue(is_present, msg=msg)
+
+            # check the content of the policies
+            for p in policies:
+                oid = p.policy_identifier.dotted_string
+                if oid == '1.3.76.16.6':
+                    for q in p.policy_qualifiers:
+                        if isinstance(q, x509.extensions.UserNotice):
+                            exp_etext = 'agIDcert'
+                            etext = q.explicit_text
+
+                            msg = '%s: policy %s must have ' % (ext_name, oid)
+                            msg += ('UserNotice.ExplicitText=%s (now: %s)'
+                                    % (exp_etext, etext))
+                            self.assertEqual(etext, exp_etext, msg=msg)
+                if oid == '1.3.76.16.4.2.1':
+                    for q in p.policy_qualifiers:
+                        if isinstance(q, x509.extensions.UserNotice):
+                            exp_etext = 'cert_SP_Pub'
+                            etext = q.explicit_text
+
+                            msg = '%s: policy %s must have ' % (ext_name, oid)
+                            msg += ('UserNotice.ExplicitText=%s (now: %s)'
+                                    % (exp_etext, etext))
+                            self.assertEqual(etext, exp_etext, msg=msg)
+                if oid == '1.3.76.16.4.3.1':
+                    for q in p.policy_qualifiers:
+                        if isinstance(q, x509.extensions.UserNotice):
+                            exp_etext = 'cert_SP_Priv'
+                            etext = q.explicit_text
+
+                            msg = '%s: policy %s must have ' % (ext_name, oid)
+                            msg += ('UserNotice.ExplicitText=%s (now: %s)'
+                                    % (exp_etext, etext))
+                            self.assertEqual(etext, exp_etext, msg=msg)
+        except x509.ExtensionNotFound:
+            self.fail('%s must be present' % ext_name)
 
     def test_subject_dn(self):
         mandatory_attrs = [
-            '2.5.4.10',  # organizationName
-            '2.5.4.3',   # commonName
-            '2.5.4.6',   # countryName
-            '2.5.4.7',   # localityName
-            '2.5.4.83',  # uri
-            '2.5.4.97',  # organizationIdentifier
+            OID_ORGANIZATION_IDENTIFIER,
+            OID_URI,
+            x509.OID_COMMON_NAME,
+            x509.OID_COUNTRY_NAME,
+            x509.OID_LOCALITY_NAME,
+            x509.OID_LOCALITY_NAME,
+            x509.OID_ORGANIZATION_NAME,
         ]
-        not_allowed_attrs = {
-            '1.2.840.113549.1.9.1',  # emailAddress
-            '2.5.4.4',               # surname
-            '2.5.4.41',              # name
-            '2.5.4.42',              # givenName
-            '2.5.4.43',              # initials
-            '2.5.4.65',              # pseudonym
-        }
+
+        not_allowed_attrs = [
+            OID_INITIALS,
+            OID_NAME,
+            x509.OID_EMAIL_ADDRESS,
+            x509.OID_GIVEN_NAME,
+            x509.OID_PSEUDONYM,
+            x509.OID_SURNAME,
+        ]
 
         subj = self.cert.subject
-        subj_attrs = [attr.oid.dotted_string for attr in subj]
+        subj_attrs = [attr.oid for attr in subj]
 
         # check if not allowed attrs are present
         for attr in not_allowed_attrs:
-            self.assertNotIn(attr, subj_attrs)
+            msg = ('Name attribute [%s, %s] is not allowed in subjectDN'
+                   % (attr._name, attr.dotted_string))
+            self.assertNotIn(attr._name, subj_attrs, msg=msg)
 
         # check if all the mandatory attre are present
         for attr in mandatory_attrs:
-            self.assertIn(attr, subj_attrs)
+            msg = ('Name attribute [%s, %s] must be present in subjectDN'
+                   % (attr._name, attr.dotted_string))
+            self.assertIn(attr, mandatory_attrs, msg=msg)
 
-        # check attr the value
+        # check the name attribute value
         for attr in subj:
-            self.assertIsNotNone(attr.value)
+            msg = ('Value for name attribute [%s, %s] can not be empty'
+                   % (attr.oid._name, attr.oid.dotted_string))
+            self.assertIsNotNone(attr.value, msg=msg)
 
-            oid = attr.oid.dotted_string
             value = attr.value
-            if oid == '2.5.4.97':
+            if attr.oid == OID_ORGANIZATION_IDENTIFIER:
                 if self.sector == 'public':
-                    self.assertTrue(value.startswith('PA:IT-'))
-                elif self.sector == 'private':
-                    self.assertIn(True, [
-                        value.startswith('CF:IT-'),
-                        value.startswith('VATIT-'),
-                    ])
-                else:
-                    pass
-            elif oid == '2.5.4.6':
-                self.assertEqual(len(value), 2)
+                    prefix = 'PA:IT-'
+                    msg = ('Value for name attribute [%s, %s] must start with "%s"'  # noqa
+                           % (attr.oid._name, attr.oid.dotted_string, prefix))
+                    self.assertTrue(value.startswith(prefix), msg=msg)
+                if self.sector == 'private':
+                    prefix_1 = 'CF:IT-'
+                    prefix_2 = 'VATIT-'
+                    msg = ('Value for name attribute [%s, %s] must start with "%s" of "%s"'  # noqa
+                           % (attr.oid._name, attr.oid.dotted_string,
+                              prefix_1, prefix_2))
+                    self.assertTrue(any([
+                        value.startswith(prefix_1),
+                        value.startswith(prefix_2),
+                    ]), msg=msg)
+            if attr.oid == x509.OID_COUNTRY_NAME:
+                msg = ('Value for name attribute [%s, %s] is not a valid country code (%s)'  # noqa
+                       % (attr.oid._name, attr.oid.dotted_string, value))
+                try:
+                    self.assertIsInstance(
+                        countries.get(value),
+                        Country,
+                        msg=msg
+                    )
+                except KeyError:
+                    self.fail(msg)
