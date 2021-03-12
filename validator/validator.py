@@ -103,7 +103,7 @@ def certificate_policies_is_ok(e: Extension) -> Tuple[bool, str]:
         return is_ok, msg
 
     # check policies
-    mandatory_policies = ['1.3.76.16', '1.3.76.16.4.2.1']
+    mandatory_policies = ['1.3.76.16.6', '1.3.76.16.4.2.1']
 
     policies = e.value
     cert_policies = [p.policy_identifier.dotted_string for p in policies]
@@ -114,17 +114,17 @@ def certificate_policies_is_ok(e: Extension) -> Tuple[bool, str]:
             return is_ok, msg
 
     for p in policies:
-        if p.policy_identifier.dotted_string == '1.3.76.16':
+        if p.policy_identifier.dotted_string == '1.3.76.16.6':
             for q in p.policy_qualifiers:
                 if isinstance(q, x509.extensions.UserNotice):
-                    if q.explicit_text != 'cert_SP_Pubblici':
+                    if q.explicit_text != 'agIDcert':
                         msg = ('UserNotice.ExplicitText for policy %s is not valid (%s)'  # noqa
                                % (p.policy_identifier.dotted_string, q.explicit_text))  # noqa
                         return is_ok, msg
         elif p.policy_identifier.dotted_string == '1.3.76.16.4.2.1':
             for q in p.policy_qualifiers:
                 if isinstance(q, x509.extensions.UserNotice):
-                    if q.explicit_text != 'Service Provider SPID Pubblico':
+                    if q.explicit_text != 'cert_SP_Pub':
                         msg = ('UserNotice.ExplicitText for policy %s is not valid (%s)'  # noqa
                                % (p.policy_identifier.dotted_string, q.explicit_text))  # noqa
                         return is_ok, msg

@@ -98,7 +98,7 @@ prompt=no
 req_extensions=req_ext
 
 [ spid_oids ]
-agid=1.3.76.16
+agidcert=1.3.76.16.6
 spid-privatesector-SP=1.3.76.16.4.3.1
 uri=2.5.4.83
 ${ORGID_OID}
@@ -117,18 +117,18 @@ keyUsage=critical,digitalSignature,nonRepudiation
 certificatePolicies=@agid_policies,@spid_policies
 
 [ agid_policies ]
-policyIdentifier=agid
-userNotice=@agid_notice
+policyIdentifier=agidcert
+userNotice=@agidcert_notice
 
-[ agid_notice ]
-explicitText="cert_SP_Privati"
+[ agidcert_notice ]
+explicitText="agIDcert"
 
 [ spid_policies ]
 policyIdentifier=spid-privatesector-SP
 userNotice=@spid_notice
 
 [ spid_notice ]
-explicitText="Service Provider SPID Privato"
+explicitText="cert_SP_Priv"
 EOF
 
 cat <<EOF
@@ -162,7 +162,7 @@ EOF
 
 oids_conf=oids.conf
 cat > ${oids_conf} <<EOF
-1.3.76.16 agid Agenzia per l'Italia Digitale
+1.3.76.16.6 agIDcert agIDcert
 1.3.76.16.4.3.1 spid-privatesector-SP spid-privatesector-SP
 2.5.4.83 uri uri
 ${ORGID_LABEL}
