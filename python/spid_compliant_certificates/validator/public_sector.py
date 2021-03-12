@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .base import TestBase
+from spid_compliant_certificates.validator.base import TestBase
 
 
 class TestPublicSector(TestBase):
