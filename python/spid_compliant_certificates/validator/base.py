@@ -18,55 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import base64
 import os
 import unittest
-from typing import Tuple
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from iso3166 import Country, countries
 
-
-class CustomObjectIdentifier(x509.ObjectIdentifier):
-    def __init__(self, dotted_string: str, name: str) -> None:
-        super(CustomObjectIdentifier, self).__init__(dotted_string)
-        self.name = name
-
-    @property
-    def _name(self) -> str:
-        return self.name
-
-
-OID_INITIALS = CustomObjectIdentifier('2.5.4.43', 'initials')
-OID_NAME = CustomObjectIdentifier('2.5.4.41', 'name')
-OID_ORGANIZATION_IDENTIFIER = CustomObjectIdentifier('2.5.4.97', 'organizationIdentifier')  # noqa
-OID_URI = CustomObjectIdentifier('2.5.4.83', 'uri')
-
-
-def pem_to_der(cert_file: str) -> Tuple[bytes, str]:
-    if not os.path.exists(cert_file):
-        msg = 'File at %s not found' % cert_file
-        return None, msg
-
-    lines = []
-    with open(cert_file, 'r') as fp:
-        lines = fp.readlines()
-        fp.close()
-
-    if ('-----BEGIN CERTIFICATE-----' not in lines[0]):
-        msg = 'Certificate at %s must be a PEM' % cert_file
-        return None, msg
-
-    if ('-----END CERTIFICATE-----' not in lines[len(lines)-1]):
-        msg = 'Certificate at %s must be a PEM' % cert_file
-        return None, msg
-
-    b64_data = ''.join([line[:-1] for line in lines[1:-1]])
-    der = base64.b64decode(b64_data)
-
-    return der, None
+from spid_compliant_certificates.validator.custom_oid import (
+    OID_INITIALS, OID_NAME, OID_ORGANIZATION_IDENTIFIER, OID_URI)
+from spid_compliant_certificates.validator.utils import pem_to_der
 
 
 class TestBase(unittest.TestCase):
