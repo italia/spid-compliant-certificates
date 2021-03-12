@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 import os
+import re
 import unittest
 
 from cryptography import x509
@@ -228,22 +229,21 @@ class TestBase(unittest.TestCase):
             self.assertIsNotNone(attr.value, msg=msg)
 
             value = attr.value
+
             if attr.oid == OID_ORGANIZATION_IDENTIFIER:
                 if self.sector == 'public':
-                    prefix = 'PA:IT-'
-                    msg = ('Value for name attribute [%s, %s] must start with "%s"'  # noqa
-                           % (attr.oid._name, attr.oid.dotted_string, prefix))
-                    self.assertTrue(value.startswith(prefix), msg=msg)
-                if self.sector == 'private':
-                    prefix_1 = 'CF:IT-'
-                    prefix_2 = 'VATIT-'
-                    msg = ('Value for name attribute [%s, %s] must start with "%s" of "%s"'  # noqa
-                           % (attr.oid._name, attr.oid.dotted_string,
-                              prefix_1, prefix_2))
-                    self.assertTrue(any([
-                        value.startswith(prefix_1),
-                        value.startswith(prefix_2),
-                    ]), msg=msg)
+                    pattern = r'^PA:IT-\S{1,11}$'
+                elif self.sector == 'private':
+                    pattern = r'^(CF:IT-[a-zA-Z0-9]{16}|VATIT-\d{11})$'
+                else:
+                    msg = 'Invalid sector (%s)' % self.sector
+                    self.fail(msg)
+
+                msg = ('Value for name attribute [%s, %s] must match [%s] (now: %s)'  # noqa
+                       % (attr.oid._name, attr.oid.dotted_string, pattern,
+                          value))
+                self.assertIsNotNone(re.match(pattern, value), msg=msg)
+
             if attr.oid == x509.OID_COUNTRY_NAME:
                 msg = ('Value for name attribute [%s, %s] is not a valid country code (%s)'  # noqa
                        % (attr.oid._name, attr.oid.dotted_string, value))
