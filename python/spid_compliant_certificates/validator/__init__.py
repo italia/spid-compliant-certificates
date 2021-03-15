@@ -18,9 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from spid_compliant_certificates.validator.private_sector import \
-    TestPrivateSector  # noqa
-from spid_compliant_certificates.validator.public_sector import \
-    TestPublicSector  # noqa
+from spid_compliant_certificates.validator.validate import validate  # noqa
 
-_all_ = ['TestPrivateSector', 'TestPublicSector']
+_all_ = [
+    'validate',
+]
