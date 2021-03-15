@@ -22,13 +22,13 @@
 
 import argparse
 import logging
-import os
 import pathlib
 import re
 import sys
 from operator import attrgetter
 
 from spid_compliant_certificates.generator import generate
+from spid_compliant_certificates.validator import validate
 
 # logging
 formatter = logging.Formatter('[%(levelname)1.1s] %(message)s')  # noqa
@@ -222,26 +222,15 @@ if __name__ == '__main__':
         if not args.crt_file.exists():
             LOG.error('Unable to find certificate file %s' % args.crt_file)
             sys.exit(1)
-
-        import unittest
-        suite = unittest.TestSuite()
-
-        if args.sector == 'private':
-            from spid_compliant_certificates.validator import TestPrivateSector
-            suite.addTest(unittest.makeSuite(TestPrivateSector))
-        elif args.sector == 'public':
-            from spid_compliant_certificates.validator import TestPublicSector
-            suite.addTest(unittest.makeSuite(TestPublicSector))
-        else:
-            LOG.error('Invalid sector (%s)' % args.sector)
+        try:
+            LOG.info(
+                'Validating certificate %s against %s sector specifications'
+                % (args.crt_file, args.sector)
+            )
+            validate(args.crt_file, args.sector)
+        except Exception as e:
+            LOG.error(e)
             sys.exit(1)
-
-        # NOTE(ps): not so elegant but it works!
-        os.environ['CERT_FILE'] = str(args.crt_file)
-        runner = unittest.TextTestRunner(verbosity=2)
-        LOG.info('Validating certificate at %s' % args.crt_file)
-        runner.run(suite)
-        os.unsetenv('CERT_FILE')
     else:
         LOG.error('Invalid mode (%s)' % args.mode)
         sys.exit(1)
