@@ -18,8 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from spid_compliant_certificates.validator.base import TestBase
+from spid_compliant_certificates.validator.test_cases import base
 
 
-class TestPrivateSector(TestBase):
-    sector = 'private'
+class TestPublicSector(base.TestBase):
+    sector = 'public'
