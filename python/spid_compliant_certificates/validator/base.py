@@ -107,15 +107,12 @@ class TestBase(unittest.TestCase):
                 msg = '%s: %s must be set' % (ext_name, usage)
                 self.assertTrue(getattr(ext.value, usage), msg=msg)
 
-            for usage in ['crl_sign', 'data_encipherment', 'decipher_only',
-                          'encipher_only', 'key_agreement', 'key_cert_sign',
-                          'key_encipherment']:
+            for usage in ['crl_sign', 'data_encipherment', 'key_agreement',
+                          'key_cert_sign', 'key_encipherment']:
                 msg = '%s: %s must be unset' % (ext_name, usage)
                 self.assertFalse(getattr(ext.value, usage), msg=msg)
         except x509.ExtensionNotFound:
             self.fail('%s must be present' % ext_name)
-        except Exception:
-            pass
 
     def test_certificate_policies(self):
         extensions = self.cert.extensions
