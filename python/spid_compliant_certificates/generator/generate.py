@@ -19,7 +19,6 @@
 # SOFTWARE.
 
 import datetime
-import logging
 import pathlib
 import re
 from typing import Dict, List, Tuple
@@ -30,19 +29,14 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
+from spid_compliant_certificates.commons import logger
+
 MD_ALGS = {
     'sha256': hashes.SHA256(),
     'sha512': hashes.SHA512(),
 }
 
-# logging
-formatter = logging.Formatter('[%(levelname)1.1s] %(message)s')  # noqa
-sh = logging.StreamHandler()
-sh.setLevel(logging.DEBUG)
-sh.setFormatter(formatter)
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
-LOG.addHandler(sh)
+LOG = logger.LOG
 
 
 def _validate_private_arguments(cert_opts: Dict) -> None:

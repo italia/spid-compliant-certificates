@@ -18,22 +18,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import logging
 from typing import List, Tuple
 
 from cryptography import x509
 
+from spid_compliant_certificates.commons import logger
 from spid_compliant_certificates.validator import checks
 from spid_compliant_certificates.validator.utils import pem_to_der
 
-# logging
-formatter = logging.Formatter('[%(levelname)1.1s] %(message)s')  # noqa
-sh = logging.StreamHandler()
-sh.setLevel(logging.DEBUG)
-sh.setFormatter(formatter)
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
-LOG.addHandler(sh)
+LOG = logger.LOG
 
 
 def _indent(txt: str, count=1) -> str:
