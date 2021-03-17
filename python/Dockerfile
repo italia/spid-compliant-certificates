@@ -18,30 +18,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM python:3-alpine
+FROM python:3-slim
 
 LABEL maintainer="Paolo Smiraglia <paolo.smiraglia@gmail.com>"
 
+COPY . /src/app
 WORKDIR /src/app
 
-COPY ./bin ./bin
-COPY ./spid_compliant_certificates ./spid_compliant_certificates
-COPY setup.py .
-COPY requirements.txt .
-
-RUN apk update \
-    && apk add --no-cache --virtual .build-deps \
-        cargo \
-        gcc \
-        libffi-dev \
-        musl-dev \
-        openssl-dev \
-        python3-dev \
-    && pip install . \
-    && apk del .build-deps \
-    && rm -fr /var/cache/apk/*
+RUN useradd --no-create-home spid \
+    && mkdir /tmp/certs \
+    && ln -s /tmp/certs /certs \
+    && pip install --no-cache-dir .
 
 WORKDIR /certs
+RUN rm -fr /src/app
 
-ENTRYPOINT ["/usr/local/bin/spid-compliant-certificates"]
+USER spid
+ENTRYPOINT ["spid-compliant-certificates"]
 CMD ["--help"]
