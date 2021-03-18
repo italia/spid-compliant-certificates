@@ -1,70 +1,69 @@
 # spid-compliant-certificates
 
-```
-$ spid-compliant-certificates --help
-usage: spid-compliant-certificates [-h] {generator,validator} ...
+Python native solution to generate and validate X.509 certificates according
+to Avviso SPID n.29 v3.
 
-Tool to generate/validate x509 certificates according to Avviso SPID n.29 v3
+## Installation
 
-positional arguments:
-  {generator,validator}
-    generator           execute the script in x509 generator mode
-    validator           execute the script in x509 validator mode
+Nothing more than
 
-optional arguments:
-  -h, --help            show this help message and exit
+    $ pip install .
 
-NOTE: The solution is provided "AS-IS" and does not represent an official
-implementation from Agenzia per l'Italia Digitale.
-```
+## Usage
 
+Generate private key, self-signed X.509 ertificate and CSR for public sector
+SPID service provider
 
-```
-$ spid-compliant-certificates generator --help
-usage: spid-compliant-certificates generator [-h] [--sector {private,public}]
-                                             [--md-alg {sha256,sha512}]
-                                             [--key-size {2048,3072,4096}]
-                                             [--key-out KEY_OUT]
-                                             [--csr-out CSR_OUT]
-                                             [--crt-out CRT_OUT] --common-name
-                                             COMMON_NAME --days DAYS
-                                             --entity-id ENTITY_ID
-                                             --locality-name LOCALITY_NAME
-                                             --org-id ORG_ID --org-name
-                                             ORG_NAME
+    $ spid-compliant-certificates generator \
+		--key-size 3072 \
+		--common-name "A.C.M.E" \
+		--days 365 \
+		--entity-id https://spid.acme.it \
+		--locality-name Roma \
+		--org-id "PA:IT-c_h501" \
+		--org-name "A Company Making Everything" \
+		--sector public
+    [D] Starting new HTTPS connection (1): indicepa.gov.it:443
+    [D] https://indicepa.gov.it:443 "GET /ricerca/n-dettaglioamministrazione.php?cod_amm=c_h501 HTTP/1.1" 200 23778
+    [I] Private key saved to key.pem
+    [I]   Inspect with OpenSSL: openssl rsa -in key.pem -noout -text
+    [I] CSR saved to csr.pem
+    [I]   Inspect with OpenSSL: openssl req -in csr.pem -noout -text
+    [I]   Inspect with OpenSSL: openssl asn1parse -i -inform PEM -in csr.pem
+    [I] Self-signed certificate saved to crt.pem
+    [I]   Inspect with OpenSSL: openssl x509 -noout -text -in crt.pem
+    [I]   Inspect with OpenSSL: openssl asn1parse -i -inform PEM -in crt.pem
 
-optional arguments:
-  --common-name COMMON_NAME
-  --crt-out CRT_OUT     path where the self-signed certificate will be stored
-                        (default: crt.pem)
-  --csr-out CSR_OUT     path where the csr will be stored (default: csr.pem)
-  --days DAYS
-  --entity-id ENTITY_ID
-  --key-out KEY_OUT     path where the private key will be stored (default:
-                        key.pem)
-  --key-size {2048,3072,4096}
-                        size of the private key (default: 2048)
-  --locality-name LOCALITY_NAME
-  --md-alg {sha256,sha512}
-                        digest algorithm (default: sha256)
-  --org-id ORG_ID
-  --org-name ORG_NAME
-  --sector {private,public}
-                        select the specifications to be followed (default:
-                        public)
-  -h, --help            show this help message and exit
-```
+Validate the self-signed X.509 certificate
 
-```
-$ spid-compliant-certificates validator --help
-usage: spid-compliant-certificates validator [-h] [--sector {private,public}]
-                                             [--crt-file CRT_FILE]
+    $ spid-compliant-certificates validator --sector public
+    [I] Validating certificate crt.pem against public sector specifications
+    [I] Checking the key type and size: success
+    [I] Checking the signature digest algorithm: success
+    [I] Checking the SubjectDN: success
+    [I] Checking basicConstraints x509 extension: success
+    [I] Checking keyUsage x509 extension: success
+    [I] Checking certificatePolicies x509 extension: success
 
-optional arguments:
-  --crt-file CRT_FILE   path where the certificate is stored (default:
-                        crt.pem)
-  --sector {private,public}
-                        select the specifications to be followed (default:
-                        public)
-  -h, --help            show this help message and exit
-```
+Generate private key and CSR for private sector SPID service provider
+
+    $ spid-compliant-certificates generator \
+		--key-size 3072 \
+		--common-name "A.C.M.E" \
+		--days 365 \
+		--entity-id https://spid.acme.it \
+		--locality-name Roma \
+        --org-id "VATIT-12345678901" \
+		--org-name "A Company Making Everything" \
+		--sector private
+    [I] Private key saved to key.pem
+    [I]   Inspect with OpenSSL: openssl rsa -in key.pem -noout -text
+    [I] CSR saved to csr.pem
+    [I]   Inspect with OpenSSL: openssl req -in csr.pem -noout -text
+    [I]   Inspect with OpenSSL: openssl asn1parse -i -inform PEM -in csr.pem
+
+Are you looking for further info?
+
+    $ spid-compliant-certificates --help
+    $ spid-compliant-certificates generator --help
+    $ spid-compliant-certificates validator --help
