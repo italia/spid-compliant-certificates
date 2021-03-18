@@ -1,3 +1,6 @@
+REPO=italia/spid-compliant-certificates
+GIT_COMMIT=$(shell git log --pretty=format:'%h' -1)
+
 default: install
 
 flake8:
@@ -44,44 +47,48 @@ validate-private:
 	spid-compliant-certificates validator --sector private
 
 docker-build:
-	docker build --tag psmiraglia/spid-compliant-certificates .
+	docker build --tag $(REPO):$(GIT_COMMIT) .
 
 docker-prepare:
 	mkdir -pv certs
 
 docker-gpub: docker-build docker-prepare
 	docker run -ti --rm -v "$(shell pwd)/certs:/certs" \
-		psmiraglia/spid-compliant-certificates generator \
-			--key-size 3072 \
-			--common-name "A.C.M.E" \
-			--days 365 \
-			--entity-id "https://spid.acme.it" \
-			--locality-name "Roma" \
-			--org-id "PA:IT-c_h501" \
-			--org-name "A Company Making Everything" \
-			--sector public
+		$(REPO):$(GIT_COMMIT) \
+			generator \
+				--key-size 3072 \
+				--common-name "A.C.M.E" \
+				--days 365 \
+				--entity-id "https://spid.acme.it" \
+				--locality-name "Roma" \
+				--org-id "PA:IT-c_h501" \
+				--org-name "A Company Making Everything" \
+				--sector public
 
 docker-vpub: docker-build docker-prepare
 	docker run -ti --rm -v "$(shell pwd)/certs:/certs" \
-		psmiraglia/spid-compliant-certificates validator \
-			--sector public
+		$(REPO):$(GIT_COMMIT) \
+			validator \
+				--sector public
 
 docker-gpriv: docker-build docker-prepare
 	docker run -ti --rm -v "$(shell pwd)/certs:/certs" \
-		psmiraglia/spid-compliant-certificates generator \
-			--key-size 3072 \
-			--common-name "A.C.M.E" \
-			--days 365 \
-			--entity-id "https://spid.acme.it" \
-			--locality-name "Roma" \
-			--org-id "VATIT-12345678901" \
-			--org-name "A Company Making Everything" \
-			--sector private
+		$(REPO):$(GIT_COMMIT) \
+			generator \
+				--key-size 3072 \
+				--common-name "A.C.M.E" \
+				--days 365 \
+				--entity-id "https://spid.acme.it" \
+				--locality-name "Roma" \
+				--org-id "VATIT-12345678901" \
+				--org-name "A Company Making Everything" \
+				--sector private
 
 docker-vpriv: docker-build docker-prepare
 	docker run -ti --rm -v "$(shell pwd)/certs:/certs" \
-		psmiraglia/spid-compliant-certificates validator \
-			--sector private
+		$(REPO):$(GIT_COMMIT) \
+			validator \
+				--sector private
 
 docker-lint:
 	docker run --rm -i hadolint/hadolint < Dockerfile
