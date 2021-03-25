@@ -28,21 +28,34 @@ from spid_compliant_certificates.validator.utils import pem_to_der
 
 LOG = logger.LOG
 
+SUCCESS = True
+FAILURE = not SUCCESS
+
 
 def _indent(txt: str, count=1) -> str:
     i = '    '
     return '%s%s' % (i * count, txt)
 
 
-def _do_check(result: Tuple[bool, List[str]], base_msg: str) -> bool:
-    res, failures = result
-    is_success = res
-    if res:
+def _do_check(checks: List[Tuple[bool, str]], base_msg: str) -> bool:
+    is_success = True
+
+    for res, msg in checks:
+        if res is FAILURE:
+            is_success = False
+            break
+
+    if is_success:
         LOG.info('%s: success' % base_msg)
     else:
         LOG.error('%s: failure' % base_msg)
-        for msg in failures:
+
+    for res, msg in checks:
+        if res is FAILURE:
             LOG.error(_indent(msg))
+        else:
+            LOG.info(_indent(msg))
+
     return is_success
 
 

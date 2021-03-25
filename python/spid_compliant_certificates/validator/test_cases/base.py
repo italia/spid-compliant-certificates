@@ -38,32 +38,38 @@ class TestBase(unittest.TestCase):
             self.fail(msg)
 
     def test_key_type_and_size(self):
-        res, failures = checks.key_type_and_size(self.cert)
-        self.assertTrue(res, msg=', '.join(failures))
+        _checks = checks.key_type_and_size(self.cert)
+        for res, msg in _checks:
+            self.assertTrue(res, msg=msg)
 
     def test_digest_algorithm(self):
         alg = self.cert.signature_hash_algorithm.name
-        res, failures = checks.digest_algorithm(alg)
-        self.assertTrue(res, msg=', '.join(failures))
+        _checks = checks.digest_algorithm(alg)
+        for res, msg in _checks:
+            self.assertTrue(res, msg=msg)
 
     def test_basic_constraints(self):
         extensions = self.cert.extensions
-        res, failures = checks.basic_constraints(extensions)
-        self.assertTrue(res, msg=', '.join(failures))
+        _checks = checks.basic_constraints(extensions)
+        for res, msg in _checks:
+            self.assertTrue(res, msg=msg)
 
     def test_key_usage(self):
         extensions = self.cert.extensions
-        res, failures = checks.key_usage(extensions)
-        self.assertTrue(res, msg=', '.join(failures))
+        _checks = checks.key_usage(extensions)
+        for res, msg in _checks:
+            self.assertTrue(res, msg=msg)
 
     def test_certificate_policies(self):
         extensions = self.cert.extensions
         sector = self.sector
-        res, failures = checks.certificate_policies(extensions, sector)
-        self.assertTrue(res, msg=', '.join(failures))
+        _checks = checks.certificate_policies(extensions, sector)
+        for res, msg in _checks:
+            self.assertTrue(res, msg=msg)
 
     def test_subject_dn(self):
         subj = self.cert.subject
         sector = self.sector
-        res, failures = checks.subject_dn(subj, sector)
-        self.assertTrue(res, msg=', '.join(failures))
+        _checks = checks.subject_dn(subj, sector)
+        for res, msg in _checks:
+            self.assertTrue(res, msg=msg)

@@ -26,9 +26,8 @@ SUCCESS = True
 FAILURE = not SUCCESS
 
 
-def basic_constraints(extensions: x509.Extensions) -> Tuple[bool, List[str]]:
-    res = SUCCESS
-    failures = []
+def basic_constraints(extensions: x509.Extensions) -> List[Tuple[bool, str]]:
+    checks = []
 
     # basicConstraints: CA:FALSE
     ext_cls = x509.BasicConstraints
@@ -38,17 +37,14 @@ def basic_constraints(extensions: x509.Extensions) -> Tuple[bool, List[str]]:
         ext = extensions.get_extension_for_class(ext_cls)
 
         msg = '%s can not be set as critical' % ext_name
-        if ext.critical:
-            res = FAILURE
-            failures.append(msg)
+        res = FAILURE if ext.critical else SUCCESS
+        checks.append((res, msg))
 
         msg = 'CA must be FALSE'
-        if ext.value.ca:
-            res = FAILURE
-            failures.append(msg)
+        res = FAILURE if ext.value.ca else SUCCESS
+        checks.append((res, msg))
     except x509.ExtensionNotFound:
         msg = '%s must be present' % ext_name
-        res = FAILURE
-        failures.append(msg)
+        checks.append((FAILURE, msg))
 
-    return res, failures
+    return checks

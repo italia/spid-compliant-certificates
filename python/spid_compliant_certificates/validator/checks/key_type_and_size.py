@@ -33,9 +33,8 @@ ALLOWED_SIZES = [
 ]
 
 
-def key_type_and_size(cert: x509.Certificate) -> Tuple[bool, List[str]]:
-    res = SUCCESS
-    failures = []
+def key_type_and_size(cert: x509.Certificate) -> List[Tuple[bool, str]]:
+    checks = []
 
     # get the public key
     pk = cert.public_key()
@@ -44,9 +43,8 @@ def key_type_and_size(cert: x509.Certificate) -> Tuple[bool, List[str]]:
     exp_pk_type = 'RSA'
     pk_type = 'RSA' if isinstance(pk, rsa.RSAPublicKey) else 'NOT ALLOWED'
     msg = 'The keypair must be %s' % exp_pk_type
-    if pk_type != exp_pk_type:
-        res = FAILURE
-        failures.append(msg)
+    res = FAILURE if pk_type != exp_pk_type else SUCCESS
+    checks.append((res, msg))
 
     # check the key size
     min_size = 2048
@@ -54,14 +52,12 @@ def key_type_and_size(cert: x509.Certificate) -> Tuple[bool, List[str]]:
 
     msg = ('The key size must be greater than or equal to %d (now: %d)'
            % (min_size, size))
-    if size < min_size:
-        res = FAILURE
-        failures.append(msg)
+    res = FAILURE if size < min_size else SUCCESS
+    checks.append((res, msg))
 
     msg = ('The key size must be one of %s (now: %d)'
            % (ALLOWED_SIZES, size))
-    if size not in ALLOWED_SIZES:
-        res = FAILURE
-        failures.append(msg)
+    res = FAILURE if size not in ALLOWED_SIZES else SUCCESS
+    checks.append((res, msg))
 
-    return res, failures
+    return checks
