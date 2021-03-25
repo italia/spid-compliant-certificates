@@ -17,3 +17,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+# (major, minor, patch, level, serial)
+# levels: alpha, beta, rc, final
+version_info = (0, 1, 0, 'rc', 0)
+
+
+def _version() -> str:
+    # PEP440
+    major, minor, patch, level, serial = version_info
+    v = '%d.%d' % (major, minor)
+    if patch > 0:
+        v += ('.%d' % patch)
+    if level != 'final':
+        v += ('%s%d') % (level, serial)
+    return v
+
+
+version = _version()

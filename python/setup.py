@@ -22,6 +22,8 @@ SOFTWARE.
 
 from setuptools import find_packages, setup
 
+from spid_compliant_certificates import version
+
 
 def get_requirements():
     requirements = []
@@ -38,7 +40,7 @@ def get_requirements():
 
 setup(
     name='spid_compliant_certificates',
-    version='0.1.0',
+    version=version,
 
     author='Paolo Smiraglia',
     author_email='paolo.smiraglia@gmail.com',
