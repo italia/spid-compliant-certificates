@@ -18,7 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM python:3-slim
+FROM --platform=$BUILDPLATFORM python:3-slim
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 LABEL maintainer="Paolo Smiraglia <paolo.smiraglia@gmail.com>"
 
