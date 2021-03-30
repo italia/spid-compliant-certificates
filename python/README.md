@@ -15,14 +15,14 @@ Generate private key, self-signed X.509 ertificate and CSR for public sector
 SPID service provider
 
     $ spid-compliant-certificates generator \
-		--key-size 3072 \
-		--common-name "A.C.M.E" \
-		--days 365 \
-		--entity-id https://spid.acme.it \
-		--locality-name Roma \
-		--org-id "PA:IT-c_h501" \
-		--org-name "A Company Making Everything" \
-		--sector public
+        --key-size 3072 \
+        --common-name "A.C.M.E" \
+        --days 365 \
+        --entity-id https://spid.acme.it \
+        --locality-name Roma \
+        --org-id "PA:IT-c_h501" \
+        --org-name "A Company Making Everything" \
+        --sector public
     [D] Starting new HTTPS connection (1): indicepa.gov.it:443
     [D] https://indicepa.gov.it:443 "GET /ricerca/n-dettaglioamministrazione.php?cod_amm=c_h501 HTTP/1.1" 200 23778
     [I] Private key saved to key.pem
@@ -88,14 +88,14 @@ Validate the self-signed X.509 certificate
 Generate private key and CSR for private sector SPID service provider
 
     $ spid-compliant-certificates generator \
-		--key-size 3072 \
-		--common-name "A.C.M.E" \
-		--days 365 \
-		--entity-id https://spid.acme.it \
-		--locality-name Roma \
+        --key-size 3072 \
+        --common-name "A.C.M.E" \
+        --days 365 \
+        --entity-id https://spid.acme.it \
+        --locality-name Roma \
         --org-id "VATIT-12345678901" \
-		--org-name "A Company Making Everything" \
-		--sector private
+        --org-name "A Company Making Everything" \
+        --sector private
     [I] Private key saved to key.pem
     [I]   Inspect with OpenSSL: openssl rsa -in key.pem -noout -text
     [I] CSR saved to csr.pem
@@ -107,3 +107,38 @@ Are you looking for further info?
     $ spid-compliant-certificates --help
     $ spid-compliant-certificates generator --help
     $ spid-compliant-certificates validator --help
+
+## Docker
+
+Build the image locally
+
+    $ docker build --tag local/spid-compliant-certificates .
+
+or pull it from [Docker Hub](https://hub.docker.com/r/italia/spid-compliant-certificates)
+
+    $ docker pull italia/spid-compliant-certificates
+
+In order to access files generated/validated by the container, mount your
+local path to `/certs`, which is the default container working directory.
+
+    $ docker run -ti --rm \
+        -v "/your/local/path:/certs" \
+        italia/spid-compliant-certificates generator \
+            --key-size 3072 \
+            --common-name "A.C.M.E" \
+            --days 365 \
+            --entity-id https://spid.acme.it \
+            --locality-name Roma \
+            --org-id "PA:IT-c_h501" \
+            --org-name "A Company Making Everything" \
+            --sector public
+    [D] Starting new HTTPS connection (1): indicepa.gov.it:443
+    [D] https://indicepa.gov.it:443 "GET /ricerca/n-dettaglioamministrazione.php?cod_amm=c_h501 HTTP/1.1" 200 23778
+    [I] Private key saved to key.pem
+    [I]   Inspect with OpenSSL: openssl rsa -in key.pem -noout -text
+    [I] CSR saved to csr.pem
+    [I]   Inspect with OpenSSL: openssl req -in csr.pem -noout -text
+    [I]   Inspect with OpenSSL: openssl asn1parse -i -inform PEM -in csr.pem
+    [I] Self-signed certificate saved to crt.pem
+    [I]   Inspect with OpenSSL: openssl x509 -noout -text -in crt.pem
+    [I]   Inspect with OpenSSL: openssl asn1parse -i -inform PEM -in crt.pem
