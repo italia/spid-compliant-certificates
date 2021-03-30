@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 import datetime
+import json
 import pathlib
 import re
 from typing import Dict, List, Tuple
@@ -58,14 +59,39 @@ def _validate_public_arguments(cert_opts: Dict) -> None:
 
     # check if the ipa code is valid
     ipa_code = org_id[6:]
-    base_url = 'https://indicepa.gov.it/ricerca/n-dettaglioamministrazione.php'  # noqa
 
-    r = requests.get(base_url, params={'cod_amm': ipa_code}, timeout=10)
+    search_api = 'https://indicepa.gov.it/PortaleServices/api/ente/ricerca'
+    query = ('{"paginazione":{"campoOrdinamento":"idEnte",'
+             + '"tipoOrdinamento":"asc","paginaRichiesta":1,'
+             + '"numTotalePagine":null,"numeroRigheTotali":null,'
+             + '"paginaCorrente":null,"righePerPagina":null},'
+             + '"codiceFiscaleRicerca":null,"area":null,"denominazione":null,'
+             + '"codEnte":"%s","idTipoServizioDigitale":null,' % ipa_code
+             + '"lingueMinoritarie":null,"codiceCategoria":null}')
+    headers = {
+        'content-type': 'application/json',
+    }
 
-    if ipa_code not in r.text:
+    r = requests.post(search_api, headers=headers, data=query)
+    res = json.loads(r.text)
+
+    if not res['risposta']['listaResponse']:
         emsg = [
             'The IPA code (%s) refers to something that does not exist.' % ipa_code,  # noqa
-            'Check it by yourself at %s' % r.url
+            'Check it by yourself at https://indicepa.gov.it/ipa-portale/consultazione/indirizzo-sede/ricerca-ente'  # noqa
+        ]
+        raise ValueError(' '.join(emsg))
+
+    ipa_code_is_valid = False
+    for e in res['risposta']['listaResponse']:
+        if e['codEnte'] == ipa_code:
+            ipa_code_is_valid = True
+            break
+
+    if not ipa_code_is_valid:
+        emsg = [
+            'The IPA code (%s) refers to something that does not exist.' % ipa_code,  # noqa
+            'Check it by yourself at https://indicepa.gov.it/ipa-portale/consultazione/indirizzo-sede/ricerca-ente'  # noqa
         ]
         raise ValueError(' '.join(emsg))
 
