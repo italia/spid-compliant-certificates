@@ -9,7 +9,7 @@ Nothing more than
 
     $ pip install .
 
-## Usage
+## Command line usage
 
 Generate private key, self-signed X.509 ertificate and CSR for public sector
 SPID service provider
@@ -108,7 +108,7 @@ Are you looking for further info?
     $ spid-compliant-certificates generator --help
     $ spid-compliant-certificates validator --help
 
-## Docker
+## Docker usage
 
 Build the image locally
 
@@ -142,3 +142,56 @@ local path to `/certs`, which is the default container working directory.
     [I] Self-signed certificate saved to crt.pem
     [I]   Inspect with OpenSSL: openssl x509 -noout -text -in crt.pem
     [I]   Inspect with OpenSSL: openssl asn1parse -i -inform PEM -in crt.pem
+
+## Dev usage
+
+The package provides Pyton `unittest` test cases that can be imported in your
+Python project
+
+```.py
+import unittest
+
+from spid_compliant_certificates.validator.test_cases import TestPrivateSector
+from spid_compliant_certificates.validator.test_cases import TestPublicSector
+
+if __name__ == '__main__':
+    suite = unittest.TestSuite()
+    loader = unittest.TestLoader()
+
+    test_cases = (TestPrivateSector, TestPublicSector, YourOtherTestCase)
+    for test_class in test_cases:
+        tests = loader.loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
+
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+```
+
+Furtermore, they can also be executed from the command line as follows
+
+    $ CERT_FILE=/path/to/your/cert.pem python -m unittest -vv spid_compliant_certificates.validator.test_cases.TestPrivateSector
+    test_basic_constraints (spid_compliant_certificates.validator.test_cases.private_sector.TestPrivateSector) ... ok
+    test_certificate_policies (spid_compliant_certificates.validator.test_cases.private_sector.TestPrivateSector) ... ok
+    test_digest_algorithm (spid_compliant_certificates.validator.test_cases.private_sector.TestPrivateSector) ... ok
+    test_key_type_and_size (spid_compliant_certificates.validator.test_cases.private_sector.TestPrivateSector) ... ok
+    test_key_usage (spid_compliant_certificates.validator.test_cases.private_sector.TestPrivateSector) ... ok
+    test_subject_dn (spid_compliant_certificates.validator.test_cases.private_sector.TestPrivateSector) ... ok
+
+    ----------------------------------------------------------------------
+    Ran 6 tests in 0.030s
+
+    OK
+
+
+    $ CERT_FILE=/path/to/your/cert.pem python -m unittest -vv spid_compliant_certificates.validator.test_cases.TestPublicSector
+    test_basic_constraints (spid_compliant_certificates.validator.test_cases.public_sector.TestPublicSector) ... ok
+    test_certificate_policies (spid_compliant_certificates.validator.test_cases.public_sector.TestPublicSector) ... ok
+    test_digest_algorithm (spid_compliant_certificates.validator.test_cases.public_sector.TestPublicSector) ... ok
+    test_key_type_and_size (spid_compliant_certificates.validator.test_cases.public_sector.TestPublicSector) ... ok
+    test_key_usage (spid_compliant_certificates.validator.test_cases.public_sector.TestPublicSector) ... ok
+    test_subject_dn (spid_compliant_certificates.validator.test_cases.public_sector.TestPublicSector) ... ok
+
+    ----------------------------------------------------------------------
+    Ran 6 tests in 0.019s
+
+    OK
