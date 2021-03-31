@@ -61,13 +61,24 @@ def _validate_public_arguments(cert_opts: Dict) -> None:
     ipa_code = org_id[6:]
 
     search_api = 'https://indicepa.gov.it/PortaleServices/api/ente/ricerca'
-    query = ('{"paginazione":{"campoOrdinamento":"idEnte",'
-             + '"tipoOrdinamento":"asc","paginaRichiesta":1,'
-             + '"numTotalePagine":null,"numeroRigheTotali":null,'
-             + '"paginaCorrente":null,"righePerPagina":null},'
-             + '"codiceFiscaleRicerca":null,"area":null,"denominazione":null,'
-             + '"codEnte":"%s","idTipoServizioDigitale":null,' % ipa_code
-             + '"lingueMinoritarie":null,"codiceCategoria":null}')
+    query = json.dumps({
+        'area': None,
+        'codEnte': ipa_code,
+        'codiceCategoria': None,
+        'codiceFiscaleRicerca': None,
+        'denominazione': None,
+        'idTipoServizioDigitale': None,
+        'lingueMinoritarie': None,
+        'paginazione': {
+            'campoOrdinamento': 'idEnte',
+            'numTotalePagine': None,
+            'numeroRigheTotali': None,
+            'paginaCorrente': None,
+            'paginaRichiesta': 1,
+            'righePerPagina': None,
+            'tipoOrdinamento': 'asc',
+        }
+    }, separators=(',', ':'))
     headers = {
         'content-type': 'application/json',
     }
