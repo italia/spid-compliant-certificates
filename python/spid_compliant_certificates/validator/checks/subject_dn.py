@@ -25,7 +25,11 @@ from cryptography import x509
 from iso3166 import Country, countries
 
 from spid_compliant_certificates.validator.checks.custom_oid import (
-    OID_INITIALS, OID_NAME, OID_ORGANIZATION_IDENTIFIER, OID_URI)
+    OID_INITIALS,
+    OID_NAME,
+    OID_ORGANIZATION_IDENTIFIER,
+    OID_URI,
+)
 
 SUCCESS = True
 FAILURE = not SUCCESS
