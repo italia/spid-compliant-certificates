@@ -1,0 +1,255 @@
+#!/usr/bin/env python3
+
+# Copyright 2021 Paolo Smiraglia <paolo.smiraglia@gmail.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import argparse
+import pathlib
+import re
+import sys
+from operator import attrgetter
+
+from spid_compliant_certificates import version
+from spid_compliant_certificates.commons import logger
+from spid_compliant_certificates.generator import generate
+from spid_compliant_certificates.validator import validate
+
+LOG = logger.LOG
+
+# argparse helpers
+
+
+class SortingHelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
+    def add_arguments(self, actions):
+        actions = sorted(actions, key=attrgetter('option_strings'))
+        super(SortingHelpFormatter, self).add_arguments(actions)
+
+
+def not_empty_string(value):
+    if not re.match(r'^\S(.*\S)?$', value):
+        emsg = 'Format "%s" is not accepted' % value
+        raise argparse.ArgumentTypeError(emsg)
+    return value
+
+
+def logo():
+    print('''
+   _____ _____ _____ _____     _____                      _ _             _
+  / ____|  __ \_   _|  __ \   / ____|                    | (_)           | |
+ | (___ | |__) || | | |  | | | |     ___  _ __ ___  _ __ | |_  __ _ _ __ | |_
+  \___ \|  ___/ | | | |  | | | |    / _ \| '_ ` _ \| '_ \| | |/ _` | '_ \| __|
+  ____) | |    _| |_| |__| | | |___| (_) | | | | | | |_) | | | (_| | | | | |_
+ |_____/|_|   |_____|_____/   \_____\___/|_| |_| |_| .__/|_|_|\__,_|_| |_|\__|
+   _____          _   _  __ _           _          | |
+  / ____|        | | (_)/ _(_)         | |         |_|
+ | |     ___ _ __| |_ _| |_ _  ___ __ _| |_ ___  ___
+ | |    / _ \ '__| __| |  _| |/ __/ _` | __/ _ \/ __|
+ | |___|  __/ |  | |_| | | | | (_| (_| | ||  __/\__ \\
+  \_____\___|_|   \__|_|_| |_|\___\__,_|\__\___||___/  v%s
+
+
+''' % version)  # noqa
+
+# main
+
+
+if __name__ == '__main__':
+
+    # create the top-level parser
+    parser = argparse.ArgumentParser(
+        description=('Tool to generate/validate x509 certificates '
+                     + 'according to Avviso SPID n.29 v3'),
+        epilog=('NOTE: The solution is provided "AS-IS" '
+                + 'and does not represent an official implementation '
+                + 'from Agenzia per l\'Italia Digitale.'),
+        formatter_class=SortingHelpFormatter
+    )
+
+    subparsers = parser.add_subparsers(dest='mode')
+
+    # create the parser for the "generator" mode
+    parser_g = subparsers.add_parser(
+        'generator',
+        help='execute the script in x509 generator mode',
+        formatter_class=SortingHelpFormatter
+    )
+
+    parser_g.add_argument(
+        '--sector',
+        action='store',
+        choices=['private', 'public'],
+        default='public',
+        help='select the specifications to be followed'
+    )
+
+    parser_g.add_argument(
+        '--md-alg',
+        action='store',
+        choices=['sha256', 'sha512'],
+        default='sha256',
+        help='digest algorithm',
+    )
+
+    parser_g.add_argument(
+        '--key-size',
+        action='store',
+        choices=[2048, 3072, 4096],
+        default=2048,
+        help='size of the private key',
+        type=int
+    )
+
+    parser_g.add_argument(
+        '--key-out',
+        action='store',
+        default='key.pem',
+        help='path where the private key will be stored',
+        type=pathlib.Path
+    )
+
+    parser_g.add_argument(
+        '--csr-out',
+        action='store',
+        default='csr.pem',
+        help='path where the csr will be stored',
+        type=pathlib.Path
+    )
+
+    parser_g.add_argument(
+        '--crt-out',
+        action='store',
+        default='crt.pem',
+        help='path where the self-signed certificate will be stored',
+        type=pathlib.Path
+    )
+
+    parser_g.add_argument(
+        '--common-name',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    parser_g.add_argument(
+        '--days',
+        action='store',
+        required=True,
+        type=int
+    )
+
+    parser_g.add_argument(
+        '--entity-id',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    parser_g.add_argument(
+        '--locality-name',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    parser_g.add_argument(
+        '--org-id',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    parser_g.add_argument(
+        '--org-name',
+        action='store',
+        required=True,
+        type=not_empty_string
+    )
+
+    # create the parser for the "validator" mode
+    parser_v = subparsers.add_parser(
+        'validator',
+        help='execute the script in x509 validator mode',
+        formatter_class=SortingHelpFormatter
+    )
+
+    parser_v.add_argument(
+        '--sector',
+        action='store',
+        choices=['private', 'public'],
+        default='public',
+        help='select the specifications to be followed'
+    )
+
+    parser_v.add_argument(
+        '--crt-file',
+        action='store',
+        default='crt.pem',
+        help='path where the certificate is stored',
+        type=pathlib.Path
+    )
+
+    args = parser.parse_args()
+
+    logo()
+
+    if args.mode == 'generator':
+        crypto_opts = {
+            'crt_out': args.crt_out,
+            'csr_out': args.csr_out,
+            'key_out': args.key_out,
+            'key_size': args.key_size,
+            'md_alg': args.md_alg,
+        }
+
+        cert_opts = {
+            'common_name': args.common_name,
+            'days': args.days,
+            'entity_id': args.entity_id,
+            'locality_name': args.locality_name,
+            'org_id': args.org_id,
+            'org_name': args.org_name,
+            'sector': args.sector,
+        }
+
+        try:
+            generate(cert_opts, crypto_opts)
+        except Exception as e:
+            LOG.error(e)
+            sys.exit(1)
+    elif args.mode == 'validator':
+        if not args.crt_file.exists():
+            LOG.error('Unable to find certificate file %s' % args.crt_file)
+            sys.exit(1)
+        try:
+            LOG.info(
+                'Validating certificate %s against %s sector specifications'
+                % (args.crt_file, args.sector)
+            )
+            validate(args.crt_file, args.sector)
+        except Exception as e:
+            LOG.error(e)
+            sys.exit(1)
+    else:
+        LOG.error('Invalid mode (%s)' % args.mode)
+        sys.exit(1)
+
+    sys.exit(0)
+
+# vim: ft=python
