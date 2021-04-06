@@ -5,11 +5,14 @@ on:
     branches:
       - main
       - master
+      - '*'   # remove it when ready
+      - '**'  # remove it when ready
     tags:
       - '*.*.*'
 
 jobs:
-  docker:
+  build_docker_image:
+    name: Build multi-arch Docker image
     runs-on: ubuntu-latest
     steps:
     -
