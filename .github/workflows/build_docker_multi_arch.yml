@@ -41,7 +41,7 @@ jobs:
       name: Checkout
       uses: actions/checkout@v2
     -
-      if: ${{ needs.check_secrets.outputs.ALL == 'true' }}
+      if: ${{ needs.check_secrets.outputs.DOCKERHUB_USERNAME == 'true' }}
       name: Docker meta
       id: docker_meta
       uses: crazy-max/ghaction-docker-meta@v2.2.1
