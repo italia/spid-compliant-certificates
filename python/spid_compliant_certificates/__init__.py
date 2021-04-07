@@ -20,7 +20,7 @@
 
 # (major, minor, patch, level, serial)
 # levels: alpha, beta, rc, final
-version_info = (0, 1, 0, 'rc', 0)
+version_info = (0, 1, 0, 'alpha', 0)
 
 
 def _version() -> str:
