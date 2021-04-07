@@ -38,6 +38,13 @@ def get_requirements():
     return requirements
 
 
+def long_description():
+    with open('README.md', 'r') as fp:
+        lines = fp.readlines()
+        fp.close()
+    return ''.join(lines)
+
+
 setup(
     name='spid_compliant_certificates',
     version=version,
@@ -45,6 +52,8 @@ setup(
     author='Paolo Smiraglia',
     author_email='paolo.smiraglia@gmail.com',
     description='Generate X509 certificates according to Avviso SPID 29 v3',
+    long_description=long_description(),
+    long_description_content_type='text/markdown',
     license='MIT',
     url='https://github.com/italia/spid-compliant-certificates',
 
