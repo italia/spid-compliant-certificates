@@ -42,7 +42,7 @@ jobs:
       if: ${{ needs.check_secrets.outputs.DOCKERHUB_USERNAME == 'true' }}
       name: Docker meta
       id: docker_meta
-      uses: crazy-max/ghaction-docker-meta@v2.2.1
+      uses: crazy-max/ghaction-docker-meta@v2.3.0
       with:
         images: |
           ${{ secrets.DOCKERHUB_USERNAME }}/spid-compliant-certificates
