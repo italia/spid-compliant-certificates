@@ -7,7 +7,12 @@ to Avviso SPID n.29 v3.
 
 Nothing more than
 
-    $ pip install .
+    $ pip install spid-compliant-certificates
+
+Alternatively, you can install it from sources
+
+    $ pip install -r requirements.txt
+    $ python setup.py install
 
 ## Command line usage
 
