@@ -205,9 +205,8 @@ if __name__ == '__main__':
         type=pathlib.Path
     )
 
-    args = parser.parse_args()
-
     logo()
+    args = parser.parse_args()
 
     if args.mode == 'generator':
         crypto_opts = {

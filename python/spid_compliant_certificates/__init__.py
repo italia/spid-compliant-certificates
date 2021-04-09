@@ -18,20 +18,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# (major, minor, patch, level, serial)
-# levels: alpha, beta, rc, final
-version_info = (0, 1, 0, 'alpha', 0)
+from packaging.utils import canonicalize_version
+from packaging.version import Version
 
+# major version
+_maj = 0
 
-def _version() -> str:
-    # PEP440
-    major, minor, patch, level, serial = version_info
-    v = '%d.%d' % (major, minor)
-    if patch > 0:
-        v += ('.%d' % patch)
-    if level != 'final':
-        v += ('%s%d') % (level, serial)
-    return v
+# minor version
+_min = 1
 
+# micro version
+_mic = 0
 
-version = _version()
+# release level (alpha, beta, rc, final)
+_rel = 'alpha'
+
+# serial
+_ser = 0
+
+# version info
+version_info = (
+    _maj,
+    _min,
+    _mic,
+    _rel,
+    _ser
+)
+
+# legacy version string
+legacy_version = (f'{_maj}.{_min}.{_mic}{_rel}{_ser}' if _rel != 'final'
+                  else f'{_maj}.{_min}.{_mic}')
+
+# canonical version
+version = canonicalize_version(Version(legacy_version))
