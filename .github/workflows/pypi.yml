@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: Publish to PyPI and TestPyPI
 
 on:
   release:
@@ -50,7 +50,7 @@ jobs:
       run: python -m build --sdist --wheel --outdir dist/
     -
       if: ${{ needs.check_secrets.outputs.TEST_PYPI_API_TOKEN == 'true' && github.event.release.prerelease }}
-      name: Publish to Test PyPI
+      name: Publish to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         packages_dir: ./python/dist/
