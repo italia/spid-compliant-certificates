@@ -20,70 +20,135 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# DESC: Usage help
+# ARGS: None
+# OUTS: None
+function script_usage() {
+    cat << EOF
+create X.509 certificates according to Avviso SPID n.29 v3.
+
+Usage:
+  -h|--help               # Displays this help
+  -i|--interactive        # asks for options from console when is not set with envirement
+
+Enviroments:
+  COMMON_NAME		  # string,  example "Comune di Roma"
+  DAYS			  # integer, example "3650"
+  ENTITY_ID		  # string,  example "https://spid.comune.roma.it/metadata"
+  LOCALITY_NAME		  # string,  example "Roma"
+  ORGANIZATION_IDENTIFIER # string,  example "PA:IT-c_h501"
+  ORGANIZATION_NAME       # string,  example "Comune di Roma"
+  MD_ALG		  # must be one of [sha256, sha512],   default: "sha512"
+  KEY_LEN		  # must be one of [2048, 3072, 4096], default: "3072"
+EOF
+}
+
+# DESC: Parameter parser
+# ARGS: $@ (optional): Arguments provided to the script
+# OUTS: Variables indicating command-line parameters and options
+function parse_params() {
+    local param
+    while [[ $# -gt 0 ]]; do
+        param="$1"
+        shift
+        case $param in
+            -h | --help)
+                script_usage
+                exit 0
+                ;;
+            -i | --interactive)
+                INTERACTIVE=true
+                ;;
+            *)
+                die "Invalid parameter was provided: $param" 1
+                ;;
+        esac
+    done
+}
+
+# DESC: Exit script with the given message
+# ARGS: $1 (required): Message to print on exit
+#       $2 (optional): Exit code (defaults to 1)
+# OUTS: None
+# NOTE: The convention used in this script for exit codes is:
+#       0: Normal exit
+#       1: Abnormal exit due to external error
+#       2: Abnormal exit due to script error
+die() {
+  local msg=${1}
+  local code=${2-1} # default exit status 1
+  echo $msg
+  exit $code
+}
+
+parse_params "$@"
 
 crt="crt.pem"
 csr="csr.pem"
 key="key.pem"
 
-# check input parameters
+### check input parameters
 
+# check KEY_LEN
 KEY_LEN=${KEY_LEN:="3072"}
 if [ $(echo ${KEY_LEN} | grep -c -P "^(2048|3072|4096)$") -ne 1 ]; then
-    echo "[E] KEY_LEN must be one of [2048, 3072, 4096], now ${KEY_LEN}"
-    exit 1
+    die "[E] KEY_LEN must be one of [2048, 3072, 4096], now ${KEY_LEN}"
 fi
 
-MD_ALG=${MD_ALG:="sha256"}
+# check MD_ALG
+MD_ALG=${MD_ALG:="sha512"}
 if [ $(echo ${MD_ALG} | grep -c -P "^(sha256|sha512)$") -ne 1 ]; then
-    echo "[E] MD_ALG must be one of [sha256, sha512], now ${MD_ALG}"
-    exit 1
+    die "[E] MD_ALG must be one of [sha256, sha512], now ${MD_ALG}"
 fi
 
-COMMON_NAME=${COMMON_NAME:=""}
+# check COMMON_NAME
+if [[ -z $COMMON_NAME && -n $INTERACTIVE ]]; then
+  read -p 'COMMON_NAME: ' COMMON_NAME
+fi
 if [ $(echo ${COMMON_NAME} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
-    echo "[E] COMMON_NAME must be set"
-    exit 1
+    die "[E] COMMON_NAME must be set"
 fi
 
-LOCALITY_NAME=${LOCALITY_NAME:=""}
+# check LOCALITY_NAME
+if [[ -z $LOCALITY_NAME && -n $INTERACTIVE ]]; then
+  read -p 'LOCALITY_NAME: ' LOCALITY_NAME
+fi
 if [ $(echo ${LOCALITY_NAME} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
-    echo "[E] LOCALITY_NAME must be set"
-    exit 1
+    die "[E] LOCALITY_NAME must be set"
 fi
 
-ORGANIZATION_IDENTIFIER=${ORGANIZATION_IDENTIFIER:=""}
+# check ORGANIZATION_IDENTIFIER
+if [[ -z $ORGANIZATION_IDENTIFIER && -n $INTERACTIVE ]]; then
+  read -p 'ORGANIZATION_IDENTIFIER: ' ORGANIZATION_IDENTIFIER
+fi
 if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
-    echo "[E] ORGANIZATION_IDENTIFIER must be set"
-    exit 1
+    die "[E] ORGANIZATION_IDENTIFIER must be set"
 fi
-
 if [ $(echo ${ORGANIZATION_IDENTIFIER} | grep -c '^PA:IT-') -ne 1 ]; then
-    echo "[E] ORGANIZATION_IDENTIFIER must be in the format of 'PA:IT-<IPA code>'"
-    exit 1
+    die "[E] ORGANIZATION_IDENTIFIER must be in the format of 'PA:IT-<IPA code>'"
 fi
-
 IPA_CODE=$(echo ${ORGANIZATION_IDENTIFIER} | sed -e "s/PA:IT-//g")
-
 JSON1='{"paginazione":{"campoOrdinamento":"codAoo","tipoOrdinamento":"asc","paginaRichiesta":1,"numTotalePagine":null,"numeroRigheTotali":null,"paginaCorrente":null,"righePerPagina":null},"codiceFiscale":null,"codUniAoo":null,"desAoo":null,"denominazioneEnte":null,"codEnte":"'
 JSON2='","codiceCategoria":null,"area":null}'
 JSON="${JSON1}${IPA_CODE}${JSON2}"
-echo $JSON
 if curl -X POST https://indicepa.gov.it/PortaleServices/api/aoo -H "Content-Type: application/json" -d ${JSON} | grep -qv '"numeroRigheTotali":1'; then
-    echo "[E] ORGANIZATION_IDENTIFIER refers to something that does not exists"
-    echo "[I] Check it by yourself at ${CHECK_URL}"
-    exit 1
+    die "[E] ORGANIZATION_IDENTIFIER refers to something that does not exists \n [I] Check it by yourself at ${CHECK_URL}"
 fi
 
-ORGANIZATION_NAME=${ORGANIZATION_NAME:=""}
+# check ORGANIZATION_NAME
+if [[ -z $ORGANIZATION_NAME && -n $INTERACTIVE ]]; then
+  read -p 'ORGANIZATION_NAME: ' ORGANIZATION_NAME
+fi
 if [ $(echo ${ORGANIZATION_NAME} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
-    echo "[E] ORGANIZATION_NAME must be set"
-    exit 1
+    die "[E] ORGANIZATION_NAME must be set"
 fi
 
-ENTITY_ID=${ENTITY_ID:=""}
+# check ENTITY_ID
+if [[ -z $ENTITY_ID && -n $INTERACTIVE ]]; then
+  read -p 'ENTITY_ID: ' ENTITY_ID
+fi
 if [ $(echo ${ENTITY_ID} | grep -Pc "^\S(.*\S)?$") -ne 1 ]; then
-    echo "[E] ENTITY_ID must be set"
-    exit 1
+    die "[E] ENTITY_ID must be set"
 fi
 
 # generate configuration file
@@ -227,3 +292,5 @@ EOF
 # cleanup
 
 rm -fr ${openssl_conf} ${oids_conf}
+
+# vim: syntax=sh cc=80 tw=79 ts=4 sw=4 sts=4 et sr
