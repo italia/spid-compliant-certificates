@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Copyright 2021 Paolo Smiraglia <paolo.smiraglia@gmail.com>
 #
