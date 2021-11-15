@@ -57,6 +57,16 @@ implementation from Agenzia per l'Italia Digitale
     The output produced by the script (see the ASN.1 dumps) allows to check
     if the specifications were honoured.
 
+## Private key, CSR and self-signed certificate for public sector with interactive mode
+1.  Generate the private key (`key.pem`), the self-signed certificate
+    (`crt.pem`) and the certificate signing request (`csr.pem`) with the
+    following command
+
+    ```
+    $ chmod +x gencert-public.sh
+    $ ./gencert-public.sh -i
+    ```
+
 ## Private key and CSR for private sector (with Docker)
 
 1.  Create and edit the `docker.env` file according to your needs
