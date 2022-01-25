@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import base64
+import datetime
 import logging
 import os
 import unittest
@@ -236,6 +237,10 @@ class TestPublicSectorSPIDCertificate(unittest.TestCase):
             elif oid == '2.5.4.6':
                 self.assertEqual(len(value), 2)
 
+    def test_expiration(self):
+        self.assertTrue(
+            self.cert.not_valid_after > datetime.datetime.now()
+        )
 
 if __name__ == '__main__':
     unittest.main(verbosity=int(os.getenv('VERBOSITY', '1')))
