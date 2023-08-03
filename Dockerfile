@@ -25,7 +25,8 @@ RUN apk update \
     && apk add --no-cache \
         curl \
         grep \
-        openssl
+        openssl \
+        bash
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY gencert-private.sh /usr/local/bin/gencert-private
