@@ -202,11 +202,11 @@ userNotice=@agidcert_notice
 explicitText="agIDcert"
 
 [ spid_policies ]
-policyIdentifier=spid-publicsector-SP
+policyIdentifier=spid-publicsector-fullaggregator
 userNotice=@spid_notice
 
 [ spid_notice ]
-explicitText="cert_SP_Pub"
+explicitText="cert_AggFull_Pub"
 EOF
 
 cat <<EOF
@@ -255,7 +255,7 @@ EOF
 oids_conf=$(mktemp)
 cat > ${oids_conf} <<EOF
 1.3.76.16.6 agIDcert agIDcert
-1.3.76.16.4.2.1 spid-publicsector-SP spid-publicsector-SP
+1.3.76.16.4.2.2 spid-publicsector-fullaggregator spid-publicsector-fullaggregator
 2.5.4.83 uri uri
 ${ORGID_LABEL}
 EOF
