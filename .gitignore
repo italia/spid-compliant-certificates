@@ -1,2 +1,4 @@
 *.crt
 *.key
+*.pem
+myenv.sh
